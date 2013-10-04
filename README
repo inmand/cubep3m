@@ -26,6 +26,6 @@ cp utils/dist_init/cmbfast.lcdm.example utils/dist_init/cmbfast.lcdm
 # your favourite batch-submission scripts [5,6] and 
 # your transfer function [7].
 
-DONE!
+#DONE!
 
 
