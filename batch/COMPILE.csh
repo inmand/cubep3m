@@ -1,4 +1,4 @@
-
+#source COMPILE.csh
 source COMPILE_dist_init.csh
 source COMPILE_dist_init_ng.csh
 source COMPILE_mhd_init.csh
