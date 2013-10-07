@@ -1,16 +1,9 @@
-# Load proper modules
-#HI
-#module clear
-module unload fftw
-module load intel #/intel-10.0b.017                                     
-module load lam #/lam-7.1.3-intel
-module load fftw #/2.1.5-intel10
 
-module list
-
-source ./init_pp_threads.csh
-#source ./init_pp_threads_minimal.csh
-
-#cd ../batch/
-
-echo "Ready to run" 
+source COMPILE_dist_init.csh
+source COMPILE_dist_init_ng.csh
+source COMPILE_mhd_init.csh
+source COMPILE_cubep3m.csh
+source COMPILE_cic_power.csh
+source COMPILE_cic_power_mhd.csh 
+source COMPILE_cic_velpower.csh
+source COMPILE_cic_velpower_mhd.csh
