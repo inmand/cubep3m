@@ -779,32 +779,46 @@ contains
     real, parameter :: k_B = 1.38065E-23 ! in J/K
     real,parameter  :: h = 0.701
     real(8), parameter :: UnitConversion = (1+z_i)**(-5.0)*ncr**2/(box*h)**2/omega_m/4.2302E-16
-    real, parameter :: a_i = 1/(1+z_i)
-    real, parameter :: mu = 1.22 ! reduced mass
-    real, parameter :: mproton = 1.6726E-27 ! in kg
-    real :: Nprime, Ephys2sim, Econst
- 
+
+    real(8), parameter :: mproton = 1.67262E-27/938272046 ! in kg
+    real(8), parameter :: mnu1 = 0.10 !eV
+    real(8), parameter :: mnu2 = 0.10
+    real(8), parameter :: mnu3 = 0.10
+    real(8), parameter :: mu = (mnu1+mnu2+mnu3)/3.0
+    real(8), parameter :: ev2J = 1.6021765E-19
+    real(8), parameter :: Tnu = 1.945
+
+    real(8), parameter :: scale = 1.0
+
     integer :: i,i1,i2,j1,j2,k1,k2
     real    :: x,y,z,dx1,dx2,dy1,dy2,dz1,dz2,vf,v(3)
     real    :: E_thermal
+    real    :: Nprime,kBT,Econst,Ephys2sim,znr
 
-    E_thermal=0.
-
-    if (z_i > 150.) then
-
-        !! Nprime is the number of physical particles represented by each sim
-        !! particle
-        !! Ephys2sim converts physical energy units (Joules) to simulation units
-        !! Econst stores the remaing numerical factors from Nprime and Ephys2sim
-
-        Econst = (4. / 9.) * 1.e-10
-        Nprime = omega_b * box**3 / mu / mproton / ncr**3
-        Ephys2sim = a_i**2 * ncr**5 / omega_m**2 / box**5
-
-#ifdef CMB_coupling
-        E_thermal = Econst * Nprime * k_B * T_CMB * (1. + z_i) * Ephys2sim
-#endif
+    !Compute the thermal energy E = kT of the neutrinos
+    !Relativistic neutrinos:
+    !   T(z=0) = (4/11)^(1/3)*2.725K = 1.945K = Tnu
+    !   Become non-relativistic when <p> = 3.15T = mnu
+    !   T(z=znr) = T(z=0)/anr = T(z=0)*(1+znr)
+    !   1+znr = mnu/3.15/T(z=0) - everything in eV
+    !   T(z<znr) = T(z=znr) * (1+z)^2/(1+znr)^2
+    !   Eth = kB*T(z) = 3.15137437 * [(4/11)^(1/3) * Tcmb * kB]^2 / (mnu) * (1+z)^2
+:
+    znr = (1.9*1000.0*mu)-1
+    if (znr < z_i) then
+        print *,'ERROR: znr = ',znr,' < redshift z_i = ',z_i
+        print *,'ERROR: Neutrinos still relativistic!'
     endif
+    kBT = 3.15137 * ( (4.0/11.0)**(1.0/3.0) * Tcmb * kB )**2 * (1.0+z_i)**2 * (1.0/mnu1 + 1.0/mnu2 + 1/.0/mnu3)/ev2J
+
+    !^This is the thermal energy of a single neutrino at redshift z
+    !  assuming it is already non-relativistic
+    ! Now need to convert this to the thermal energy of a simulation particle
+    !  e.g. multiply by N'E(phys->sim)
+    Econst = (4. / 9.) * 1.e-10
+    Nprime = omega_b * box**3 / mu / mproton / (nc / 2)**3
+    Ephys2sim = nc**5 / omega_m**2 / box**5 / (1.+z_i)**2
+    E_thermal = kBT*Econst*Nprime*Ephys2sim*scale
 
     do i=1,np_local
        x=xvp(1,i)!-0.5
