@@ -10,7 +10,7 @@ character(*), parameter :: scratch_path = '/scratch/p/pen/dinman/cubep3m/!!!/'
 character(*), parameter :: output_path    = '/scratch/p/pen/dinman/cubep3m/!!!/' 
 
 ! path to cubepm root directory 
-character(*), parameter :: cubepm_root    = '/scratch/p/pen/dinman/cubep3m/!!!/workdir'
+character(*), parameter :: cubepm_root    = '/scratch/p/pen/dinman/cubep3m/!!!/workdir/'
 
 ! nodes / dimension, total nodes = nodes_dim**3
 integer(4),   parameter :: nodes_dim      = 1 
