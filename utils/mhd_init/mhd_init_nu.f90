@@ -774,8 +774,8 @@ contains
   subroutine GetU
     implicit none
     real, parameter :: mp=(ncr/np)**3!*omega_b/omega_m
-    real, parameter ::T_CMB = 2.725 ! in K
-    real, parameter ::gamma = 5./3.
+    real, parameter :: T_CMB = 2.725 ! in K
+    real, parameter :: gamma = 5./3.
     real, parameter :: k_B = 1.38065E-23 ! in J/K
     real,parameter  :: h = 0.701
     real(8), parameter :: UnitConversion = (1+z_i)**(-5.0)*ncr**2/(box*h)**2/omega_m/4.2302E-16
