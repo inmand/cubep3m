@@ -18,7 +18,7 @@
 
     fstat=0
 
-    np_local=(nf_physical_node_dim/2)**3
+    np_local=(nf_physical_node_dim/2)**3*rnucdm
 
 !! set flag in cubepm.par to select desired initial conditions
  
