@@ -144,7 +144,11 @@
 #ifdef MHD
               rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p*(1.0-omega_b/omega_m)
 #else
-              rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p
+              if ( mod(PID(pp),rnucdm) .NE. 0 ) then
+                rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p*0.0
+              else 
+                rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p
+              end if
 #endif
               pp = ll(pp)
             enddo
@@ -336,7 +340,11 @@
 #ifdef MHD
               force_pp=mass_p*(sep/(rmag*pp_bias)**3)*(1.0 - omega_b/omega_m)
 #else          
-              force_pp=mass_p*(sep/(rmag*pp_bias)**3)  !mass_p divides out below
+              if ( mod(PID(pp1),rnucdm) .EQ. 0 ) .and. ( mod(PID(pp2),rnucdm) .EQ. 0 ) then
+                force_pp=mass_p*(sep/(rmag*pp_bias)**3)  !mass_p divides out below
+              else
+                force_pp=0
+              end if
 #endif
                         pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp
                         pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp

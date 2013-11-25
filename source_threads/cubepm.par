@@ -9,6 +9,12 @@ character(*), parameter :: projections=cubepm_root//'input/projections'!_Lensing
 character(*), parameter :: halofinds=  cubepm_root//'input/halofinds'!_Lensing'
 character(*), parameter :: kernel_path=cubepm_root//'kernels/'
 
+!! Neutrino parameters
+
+!Ratio of neutrino particles to cdm
+
+integer(4),parameter	:: rnucdm = 1
+
 !! cosmological parameters
 
 ! turn this off for pair-wise force tests
