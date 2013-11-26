@@ -144,8 +144,8 @@
 #ifdef MHD
               rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p*(1.0-omega_b/omega_m)
 #else
-              if ( mod(PID(pp),rnucdm) .NE. 0 ) then
-                rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p*0.0
+              if ( nu_flag .AND. (mod(PID(pp),r_n_nucdm) .NE. 0) ) then
+                rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p*r_m_nucdm
               else 
                 rho_f(i1(1),i1(2),i1(3),thread) = rho_f(i1(1),i1(2),i1(3),thread)+mass_p
               end if
@@ -340,14 +340,26 @@
 #ifdef MHD
               force_pp=mass_p*(sep/(rmag*pp_bias)**3)*(1.0 - omega_b/omega_m)
 #else          
-              if ( mod(PID(pp1),rnucdm) .EQ. 0 ) .and. ( mod(PID(pp2),rnucdm) .EQ. 0 ) then
-                force_pp=mass_p*(sep/(rmag*pp_bias)**3)  !mass_p divides out below
-              else
-                force_pp=0
-              end if
+              force_pp=mass_p*(sep/(rmag*pp_bias)**3)  !mass_p divides out below
 #endif
-                        pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp
-                        pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp
+                        if (nu_flag) then
+                            if ( (mod(PID(pp1),r_n_nucdm) .NE. 0) .AND. (mod(PID(pp2),r_n_nucdm) .NE. 0) ) then
+                                pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp*r_m_nucdm
+                                pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp*r_m_nucdm
+                            else if ( (mod(PID(pp1),r_n_nucdm) .NE. 0) .AND. (mod(PID(pp),r_n_nucdm) .EQ. 0) then
+                                pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp
+                                pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp*r_m_nucdm
+                            else if ( (mod(PID(pp1),r_n_nucdm) .EQ. 0) .AND. (mod(PID(pp2),r_n_nucdm) .NE. 0) ) then
+                                pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp*r_m_nucdm
+                                pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp
+                            else
+                                pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp
+                                pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp
+                            end if
+                        else 
+                            pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp
+                            pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp
+                        end if
                         if (pp_force_flag) then
                           xv(4:,pp1)=xv(4:,pp1)-force_pp*a_mid*G*dt
                           xv(4:,pp2)=xv(4:,pp2)+force_pp*a_mid*G*dt

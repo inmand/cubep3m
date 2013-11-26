@@ -10,10 +10,12 @@ character(*), parameter :: halofinds=  cubepm_root//'input/halofinds'!_Lensing'
 character(*), parameter :: kernel_path=cubepm_root//'kernels/'
 
 !! Neutrino parameters
-
+!Do neutrinos?
+logical,parameter       :: nu_flag = .true.
 !Ratio of neutrino particles to cdm
-
-integer(4),parameter	:: rnucdm = 1
+integer(4),parameter	:: r_n_nucdm = 1
+!Ratio of neutrino mass to cdm mass
+real(4),parameter    :: r_m_nucdm = 0.0
 
 !! cosmological parameters
 
