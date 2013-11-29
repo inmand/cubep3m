@@ -17,7 +17,14 @@ program cic_power
   include '../../parameters'
 
   logical, parameter :: correct_kernel=.false.
-
+  
+  !Neutrino params
+  logical, parameter    :: nu_flag = .true.
+  logical, parameter    :: just_nu = .false.
+  logical, parameter    :: just_cdm = .false.
+  real(4),parameter    :: r_m_nucdm = 0.0
+  integer(4),parameter	:: r_n_nucdm = 1
+  
   character(len=*), parameter ::checkpoints=cubepm_root//'/input/checkpoints'
   !character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_LargePID'!bao_600Mpc'
   !character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_bao_600Mpc'
@@ -1277,8 +1284,35 @@ contains
          print *,'particle out of bounds',i1,i2,j1,j2,k1,k2,nc_node_dim
        endif 
 
-       dz1=mp*dz1
-       dz2=mp*dz2
+       if ( nu_flag ) then
+        if (just_nu) then
+            if (mod(i,r_n_nucdm) .NE. 0) then
+                dz1=r_m_nucdm*mp*dz1
+                dz2=r_m_nucdm*mp*dz2
+            else
+                dz1=0.0
+                dz2=0.0
+            end if
+        else if (just_cdm) then
+            if (mod(i,r_n_nucdm) .NE. 0) then
+                dz1=0.0*mp*dz1
+                dz2=0.0*mp*dz2
+            else
+                dz1=mp*dz1
+                dz2=mp*dz2
+            end if 
+        else if ( mod(i,r_n_nucdm) .NE. 0) then
+            dz1=r_m_nucdm*mp*dz1
+            dz2=r_m_nucdm*mp*dz2 
+        else 
+            dz1=mp*dz1
+            dz2=mp*dz2 
+        end if     
+       else 
+        dz1=mp*dz1
+        dz2=mp*dz2
+       end if
+       
        den(i1,j1,k1)=den(i1,j1,k1)+dx1*dy1*dz1
        den(i2,j1,k1)=den(i2,j1,k1)+dx2*dy1*dz1
        den(i1,j2,k1)=den(i1,j2,k1)+dx1*dy2*dz1
