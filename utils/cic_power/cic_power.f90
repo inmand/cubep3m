@@ -22,9 +22,9 @@ program cic_power
   logical, parameter    :: nu_flag = .true.
   logical, parameter    :: just_nu = .false.
   logical, parameter    :: just_cdm = .false.
-  real(4),parameter    :: r_n_nucdm = 1
+  integer(4),parameter    :: r_n_nucdm = 9
   !Omega parameters
-  real(4),parameter    :: Onu = 0.0
+  real(4),parameter    :: Onu = 0.0001
   !Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
   real(4),parameter    :: r_m_nucdm = Onu/omega_m
   !Omega_dm/Omega_m = (Omega_dm)/(Omega_dm+Omega_nu) = 1-Omega_Nu/(Omega_dm+Omega_nu)
