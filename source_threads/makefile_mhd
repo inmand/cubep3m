@@ -8,11 +8,9 @@ FFTWINC= -I/scinet/gpc/lib/fftw/intel-intelmpi-3.2.2-medium/include
 
 LDLIBS= -lsrfftw_mpi -lsrfftw -lsfftw_mpi -lsfftw -lm -ldl
 
-FFLAGS=-shared-intel -fpp -g  -O3 -fpic -xhost -i_dynamic -mcmodel=medium -mt_mpi -DDIAG -DBINARY -DNGP -DPPINT -DOPENMP  -DMPI_TIME  -DLRCKCORR -DNGPH -DDISP_MESH -DMHD -DMOVE_GRID_BACK -DMHD_CIC #-DCMB_coupling #-DMHD_DEBUG #-DDEBUG_PP_MESH
+FFLAGS=-shared-intel -fpp -g  -O3 -fpic -xhost -i_dynamic -mcmodel=medium -mt_mpi -DDIAG -DBINARY -DNGP -DPPINT -DOPENMP  -DMPI_TIME  -DLRCKCORR -DNGPH -DDISP_MESH -DMHD -DMOVE_GRID_BACK -DMHD_CIC #-DMHD_CIC_MASS -DREAD_SEED
 
-#OPTIONAL FLAGS :: -DMHD -DDEBUG_CCIC -DDEBUG_CRHO -DDEBUG_RHOC -DPOINTSRC ##-DBFTEST -DXDRIFT -DPID_FLAG -DPP_EXT -DREAD_SEED -DDEBUG_PP_EXT -DChaplygin #-DDEBUG_CFL#-DDEBUG_PP_MESH #-DDEBUG_COARSE_MESH -DMHD #-DPP_EXT -DPID_FLAG #-DDEBUG_PP_EXT #-DREAD_SEED #-DDISP_MESH -DPID_FLAG #-DDEBUG 
-
-
+#OPTIONAL FLAGS :: -DMHD -DDEBUG_CCIC -DDEBUG_CRHO -DDEBUG_RHOC -DPOINTSRC ##-DBFTEST -DXDRIFT -DPID_FLAG -DPP_EXT -DREAD_SEED -DDEBUG_PP_EXT -DChaplygin
 
 OBJS= mpi_tvd_mhd.o  checkpoint.o coarse_cic_mass.o coarse_cic_mass_buffer.o coarse_force.o coarse_force_buffer.o coarse_mass.o coarse_max_dt.o coarse_mesh.o coarse_power.o coarse_velocity.o cubepm.o delete_particles.o fftw3ds.o fine_cic_mass.o fine_cic_mass_buffer.o fine_gas_mass_mhd.o fine_mesh.o fine_ngp_mass.o fine_velocity_mhd.o gas_density_buffer.o halofind.o fftw2.o init_projection.o kernel_initialization.o link_list.o move_grid_back.o mpi_initialization.o particle_initialization.o particle_mesh_threaded.o particle_pass.o projection.o report_pair.o report_force.o set_pair.o indexedsort.o timers.o timestep.o update_position.o variable_initialization.o   
 
@@ -22,7 +20,7 @@ cubep3m: $(OBJS)
 	$(FC) $(FFLAGS) -openmp  $^ -o $@ -L$(FFTWLIB) $(LDLIBS) 
 
 mpi_tvd_mhd.o: mpi_tvd_mhd.f90
-	$(FC) $(FFLAGS) -openmp -c $<
+	$(FC) $(FFLAGS) -c $<
 
 gas_density_buffer.o: gas_density_buffer.f90 mpi_tvd_mhd.o
 	$(FC) $(FFLAGS) -c $<
@@ -32,9 +30,6 @@ fine_gas_mass_mhd.o: fine_gas_mass_mhd.f90 mpi_tvd_mhd.o
 
 cubepm.o: cubepm.f90 mpi_tvd_mhd.o
 	$(FC) $(FFLAGS) -openmp -c $<
-
-#cubepm.o: cubepm.f90 
-#	$(FC) $(FFLAGS) -openmp -c $<  
 
 checkpoint.o: checkpoint.f90 mpi_tvd_mhd.o
 	$(FC) $(FFLAGS) -c $<
@@ -51,7 +46,7 @@ coarse_force.o: coarse_force.f90
 coarse_force_buffer.o: coarse_force_buffer.f90
 	$(FC) $(FFLAGS) -c $<
 
-coarse_mass.o: coarse_mass.f90 mpi_tvd_mhd.o 
+coarse_mass.o: coarse_mass.f90 
 	$(FC) $(FFLAGS) -openmp -c $<
 
 coarse_max_dt.o: coarse_max_dt.f90
@@ -74,9 +69,6 @@ fine_cic_mass.o: fine_cic_mass.f90
 
 fine_cic_mass_buffer.o: fine_cic_mass_buffer.f90
 	$(FC) $(FFLAGS) -c $<
-
-#fine_gas_mass.o: fine_gas_mass.f90 mpi_tvd_mhd.o
-#	$(FC) $(BROKE_FFLAGS) -c $<
 
 fine_mesh.o: fine_mesh.f90 mpi_tvd_mhd.o
 	$(FC) $(FFLAGS) -openmp -c $<
@@ -115,7 +107,7 @@ link_list.o: link_list.f90
 	$(FC) $(FFLAGS) -c $<
 
 move_grid_back.o: move_grid_back.f90
-	$(FC) $(FFLAGS) -openmp -c $<
+	$(FC) $(FFLAGS) -c $<
 
 mpi_initialization.o: mpi_initialization.f90
 	$(FC) $(FFLAGS) -c $<
