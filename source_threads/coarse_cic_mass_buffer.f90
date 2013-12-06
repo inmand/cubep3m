@@ -35,11 +35,11 @@
       dx2(1) = mass_p * dx2(1) * (1.0 - omega_b/omega_m)
 #else
       if( nu_flag .AND. (mod(PID(pp),r_n_nucdm) .NE. 0) ) then 
-        dx1(1) = mass_p * dx1(1) * r_m_nucdm
-        dx2(1) = mass_p * dx2(1) * r_m_nucdm
+        dx1(1) = mass_p * dx1(1) * r_m_nucdm / (r_n_nucdm-1.0)
+        dx2(1) = mass_p * dx2(1) * r_m_nucdm / (r_n_nucdm-1.0)
       else 
-        dx1(1) = mass_p * dx1(1) 
-        dx2(1) = mass_p * dx2(1)   
+        dx1(1) = mass_p * dx1(1) * (1.0-r_m_nucdm)
+        dx2(1) = mass_p * dx2(1) * (1.0-r_m_nucdm)
       end if
 #endif
 

@@ -22,8 +22,13 @@ program cic_power
   logical, parameter    :: nu_flag = .true.
   logical, parameter    :: just_nu = .false.
   logical, parameter    :: just_cdm = .false.
-  real(4),parameter    :: r_m_nucdm = 0.0
-  integer(4),parameter	:: r_n_nucdm = 1
+  real(4),parameter    :: r_n_nucdm = 1.0
+  !Omega parameters
+  real(4),parameter    :: Onu = 0.0
+  !Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
+  real(4),parameter    :: r_m_nucdm = Onu/omega_m
+  !Omega_dm/Omega_m = (Omega_dm)/(Omega_dm+Omega_nu) = 1-Omega_Nu/(Omega_dm+Omega_nu)
+
   
   character(len=*), parameter ::checkpoints=cubepm_root//'/input/checkpoints'
   !character(len=*), parameter :: checkpoints=cubepm_root//'/input/checkpoints_LargePID'!bao_600Mpc'
@@ -1286,27 +1291,27 @@ contains
 
        if ( nu_flag ) then
         if (just_nu) then
-            if (mod(i,r_n_nucdm) .NE. 0) then
-                dz1=r_m_nucdm*mp*dz1
-                dz2=r_m_nucdm*mp*dz2
+            if (mod(PID(i),r_n_nucdm) .NE. 0) then
+                dz1=r_m_nucdm*mp*dz1/(r_n_nucdm-1.0)
+                dz2=r_m_nucdm*mp*dz2/(r_n_nucdm-1.0)
             else
                 dz1=0.0
                 dz2=0.0
             end if
         else if (just_cdm) then
-            if (mod(i,r_n_nucdm) .NE. 0) then
+            if (mod(PID(i),r_n_nucdm) .NE. 0) then
                 dz1=0.0*mp*dz1
                 dz2=0.0*mp*dz2
             else
-                dz1=mp*dz1
-                dz2=mp*dz2
+                dz1=mp*dz1*(1.0-r_m_nucdm)
+                dz2=mp*dz2*(1.0-r_m_nucdm)
             end if 
-        else if ( mod(i,r_n_nucdm) .NE. 0) then
-            dz1=r_m_nucdm*mp*dz1
-            dz2=r_m_nucdm*mp*dz2 
+        else if ( mod(PID(i),r_n_nucdm) .NE. 0) then
+            dz1=r_m_nucdm*mp*dz1/(r_n_nucdm-1.0)
+            dz2=r_m_nucdm*mp*dz2/(r_n_nucdm-1.0)
         else 
-            dz1=mp*dz1
-            dz2=mp*dz2 
+            dz1=mp*dz1*(1.0-r_m_nucdm)
+            dz2=mp*dz2*(1.0-r_m_nucdm)
         end if     
        else 
         dz1=mp*dz1

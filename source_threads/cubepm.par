@@ -12,10 +12,13 @@ character(*), parameter :: kernel_path=cubepm_root//'kernels/'
 !! Neutrino parameters
 !Do neutrinos?
 logical,parameter       :: nu_flag = .true.
-!Ratio of neutrino particles to cdm
+!Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
 integer(4),parameter	:: r_n_nucdm = 1
-!Ratio of neutrino mass to cdm mass
-real(4),parameter    :: r_m_nucdm = 0.0
+!Omega parameters
+real(4),parameter    :: Onu = 0.0
+!Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
+real(4),parameter    :: r_m_nucdm = Onu/omega_m
+!Omega_dm/Omega_m = (Omega_dm)/(Omega_dm+Omega_nu) = 1-Omega_Nu/(Omega_dm+Omega_nu)
 
 !! cosmological parameters
 
