@@ -90,7 +90,7 @@ program cic_power
 
   !! Dark matter arrays
   real, dimension(6,max_np) :: xvp
-  real, dimension(3,np_buffer) :: xp_buf
+  real, dimension(6,np_buffer) :: xp_buf
   real, dimension(3*np_buffer) :: send_buf, recv_buf
   real, dimension(0:nc_node_dim+1,0:nc_node_dim+1,0:nc_node_dim+1) :: den 
   real, dimension(0:nc_node_dim+1,0:nc_node_dim+1) :: den_buf 
@@ -124,10 +124,10 @@ program cic_power
   !! Common block
 #ifdef PLPLOT
 !  common xvp,send_buf,slab_work,den_buf,den,cube,slab,xp_buf,recv_buf,pkdm,pkplot
- common xvp,send_buf,den_buf,den,recv_buf,pkdm,pkplot,PID, PID_buf, send2_buf, recv2_buf
+ common xvp,xp_buf,send_buf,den_buf,den,recv_buf,pkdm,pkplot,PID, PID_buf, send2_buf, recv2_buf
 #else
 !  common xvp,send_buf,slab_work,den_buf,den,cube,slab,xp_buf,recv_buf,pkdm
-  common xvp,send_buf,den_buf,den,recv_buf,pkdm,poisson,PID, PID_buf, send2_buf, recv2_buf
+  common xvp,xp_buf,send_buf,den_buf,den,recv_buf,pkdm,poisson,PID, PID_buf, send2_buf, recv2_buf
 #endif
 
 !!---start main--------------------------------------------------------------!!
