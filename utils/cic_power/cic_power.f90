@@ -124,10 +124,10 @@ program cic_power
   !! Common block
 #ifdef PLPLOT
 !  common xvp,send_buf,slab_work,den_buf,den,cube,slab,xp_buf,recv_buf,pkdm,pkplot
- common xvp,xp_buf,send_buf,den_buf,den,recv_buf,pkdm,pkplot,PID, PID_buf, send2_buf, recv2_buf
+ common xvp,send_buf,den_buf,den,recv_buf,pkdm,pkplot,PID, PID_buf, send2_buf, recv2_buf
 #else
 !  common xvp,send_buf,slab_work,den_buf,den,cube,slab,xp_buf,recv_buf,pkdm
-  common xvp,xp_buf,send_buf,den_buf,den,recv_buf,pkdm,poisson,PID, PID_buf, send2_buf, recv2_buf
+  common xvp,send_buf,den_buf,den,recv_buf,pkdm,poisson,PID, PID_buf, send2_buf, recv2_buf
 #endif
 
 !!---start main--------------------------------------------------------------!!
