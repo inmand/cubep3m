@@ -22,7 +22,7 @@ program cic_power
   logical, parameter    :: nu_flag = .true.
   logical, parameter    :: just_nu = .false.
   logical, parameter    :: just_cdm = .false.
-  real(4),parameter    :: r_n_nucdm = 1.0
+  real(4),parameter    :: r_n_nucdm = 1
   !Omega parameters
   real(4),parameter    :: Onu = 0.0
   !Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
@@ -934,172 +934,210 @@ end subroutine read_ids
     if (rank == 0) write(*,"(f8.2,a)") time2,'  Called dm'
     return
   end subroutine PoissonNoise
-!------------------------------------------------------------!
+! -------------------------------------------------------------------------------------------------------
 
-  subroutine pass_particles
+subroutine pass_particles
+    !
+    ! Pass particles inside buffer space to their appropriate nodes.
+    !
+    
     implicit none
 
-    integer i,pp,np_buf,np_exit,npo,npi
-    integer*8 np_final
-    real x(3),lb,ub
+    integer i,pp,np_buf,np_exit,np_final,npo,npi
+    real x(6),lb,ub
+    integer(8) :: p
     integer, dimension(mpi_status_size) :: status,sstatus,rstatus
-    integer :: tag,srequest,rrequest,sierr,rierr
+    integer :: tag,srequest,rrequest,sierr,rierr,tag2
     real(4), parameter :: eps = 1.0e-03
 
-    lb=0.0
-    ub=real(nc_node_dim)
+    real(8) time1, time2
+    time1 = mpi_wtime(ierr)
 
-    np_buf=0
-    pp=1
+    !
+    ! Identify particles within the buffer
+    !
+
+    lb = 0.
+    ub = real(nc_node_dim)
+
+    np_buf = 0
+    pp = 1
+
     do
-      if (pp > np_local) exit
-      x=xvp(:3,pp)
-      if (x(1) < lb .or. x(1) >= ub .or. x(2) < lb .or. x(2) >= ub .or. &
-          x(3) < lb .or. x(3) >= ub ) then
-!        write (*,*) 'PARTICLE OUT',xv(:,pp)
-        np_buf=np_buf+1
-        if (np_buf > np_buffer) then
-          print *,rank,'np_buffer =',np_buffer,'exceeded - np_buf =',np_buf
-          call mpi_abort(mpi_comm_world,ierr,ierr)
-        endif 
-        xp_buf(:,np_buf)=xvp(:3,pp)
-        xvp(:,pp)=xvp(:,np_local)
-        PID_buf(np_buf)   = PID(pp)
-        PID(pp)           = PID(np_local)
-        np_local=np_local-1
-        cycle 
-      endif
-      pp=pp+1
+    
+        if (pp > np_local) exit
+
+        !! Read its position  
+        x = xvp(:, pp)
+        
+       !! See if it lies within the buffer
+        if (x(1) < lb .or. x(1) >= ub .or. x(2) < lb .or. x(2) >= ub .or. &
+            x(3) < lb .or. x(3) >= ub ) then
+       
+            !write (*,*) 'PARTICLE OUT', xvp(:, pp)
+        
+            !! Make sure we aren't exceeding the maximum
+            np_buf = np_buf + 1
+        
+            if (np_buf > np_buffer) then
+                print *, rank, 'np_buffer =', np_buffer, 'exceeded - np_buf =', np_buf
+                call mpi_abort(mpi_comm_world, ierr, ierr)
+            endif 
+
+            xp_buf(:, np_buf) = xvp(:, pp)
+            xvp(:, pp)        = xvp(:, np_local)
+            PID_buf(np_buf)   = PID(pp)
+            PID(pp)           = PID(np_local)
+
+            np_local          = np_local - 1
+        
+            cycle 
+      
+        endif
+      
+        pp = pp + 1
+    
     enddo
  
-    call mpi_reduce(np_buf,np_exit,1,mpi_integer,mpi_sum,0, &
-                    mpi_comm_world,ierr) 
+    call mpi_reduce(np_buf, np_exit, 1, mpi_integer, mpi_sum, 0, &
+                    mpi_comm_world, ierr) 
 
 #ifdef DEBUG
-    do i=0,nodes-1
-      if (rank==i) print *,rank,'np_exit=',np_buf
-      call mpi_barrier(mpi_comm_world,ierr)
+    do i = 0, nodes-1
+      if (rank == i) print *, rank, 'np_exit = ', np_buf
+      call mpi_barrier(mpi_comm_world, ierr)
     enddo
 #endif 
 
-    if (rank == 0) print *,'total exiting particles =',np_exit
+    if (rank == 0) print *,'Total exiting particles = ',np_exit
 
-! pass +x
+    !
+    ! Pass +x
+    !
 
-    tag=11 
-    npo=0
-    pp=1
+    !! Find particles that need to be passed
+
+    tag = 11 
+    tag2 = 12
+    npo = 0
+    pp  = 1
     do 
       if (pp > np_buf) exit
-      if (xp_buf(1,pp) >= ub) then
-        npo=npo+1
-        send_buf((npo-1)*3+1:npo*3)=xp_buf(:,pp)
-        xp_buf(:,pp)=xp_buf(:,np_buf)
+      if (xp_buf(1, pp) >= ub) then
+        npo = npo + 1
+        send_buf((npo-1)*6+1:npo*6) = xp_buf(:, pp)
+        xp_buf(:, pp) = xp_buf(:, np_buf)
         send2_buf(npo) = PID_buf(pp)
         PID_buf(pp) = PID_buf(np_buf)
-        np_buf=np_buf-1
+        np_buf = np_buf - 1
         cycle
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
 
 #ifdef DEBUG
-    do i=0,nodes-1
-      if (rank==i) print *,rank,'np_out=',npo
-      call mpi_barrier(mpi_comm_world,ierr)
+    do i = 0, nodes-1
+      if (rank == i) print *, rank, 'np_out=', npo
+      call mpi_barrier(mpi_comm_world, ierr)
     enddo
 #endif 
 
     npi = npo
 
-    call mpi_sendrecv_replace(npi,1,mpi_integer,cart_neighbor(6), &
-                              tag,cart_neighbor(5),tag,mpi_comm_world, &
-                              status,ierr) 
+    call mpi_sendrecv_replace(npi, 1, mpi_integer, cart_neighbor(6), &
+                              tag, cart_neighbor(5), tag, mpi_comm_world, &
+                              status, ierr) 
 
-    call mpi_isend(send_buf,npo*3,mpi_real,cart_neighbor(6), &
-                   tag,mpi_comm_world,srequest,sierr)
-    call mpi_irecv(recv_buf,npi*3,mpi_real,cart_neighbor(5), &
-                   tag,mpi_comm_world,rrequest,rierr)
+    call mpi_isend(send_buf, npo*6, mpi_real, cart_neighbor(6), &
+                   tag, mpi_comm_world, srequest, sierr)
+    call mpi_irecv(recv_buf, npi*6, mpi_real, cart_neighbor(5), &
+                   tag, mpi_comm_world, rrequest, rierr)
     call mpi_wait(srequest, sstatus, sierr)
     call mpi_wait(rrequest, rstatus, rierr)
+
     call mpi_isend(send2_buf, npo, mpi_integer8, cart_neighbor(6), &
                    tag2, mpi_comm_world, srequest, sierr)
     call mpi_irecv(recv2_buf, npi, mpi_integer8, cart_neighbor(5), &
                    tag2, mpi_comm_world, rrequest, rierr)
-    call mpi_wait(srequest,sstatus,sierr)
-    call mpi_wait(rrequest,rstatus,rierr)
+    call mpi_wait(srequest, sstatus, sierr)
+    call mpi_wait(rrequest, rstatus, rierr)
 
-    do pp=1,npi
-      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*3+1:pp*3)
-      xp_buf(1,np_buf+pp)=max(xp_buf(1,np_buf+pp)-ub,lb)
+    do pp = 1, npi
+      xp_buf(:, np_buf + pp) = recv_buf((pp-1)*6+1:pp*6)
+      xp_buf(1, np_buf + pp) = max(xp_buf(1, np_buf+pp) - ub, lb)
       PID_buf(np_buf + pp) = recv2_buf(pp)
     enddo
 
 #ifdef DEBUG
-    do i=0,nodes-1
-      if (rank==i) print *,rank,'x+ np_local=',np_local
-      call mpi_barrier(mpi_comm_world,ierr)
+    do i = 0, nodes-1
+      if (rank == i) print *, rank, 'x+ np_local=', np_local
+      call mpi_barrier(mpi_comm_world, ierr)
     enddo
 #endif 
 
-    pp=1
+    pp = 1
+
     do 
       if (pp > npi) exit 
-      x=xp_buf(:,np_buf+pp)
+      x = xp_buf(:, np_buf + pp)
       p = PID_buf(np_buf + pp)
       if (x(1) >= lb .and. x(1) < ub .and. x(2) >= lb .and. x(2) < ub .and. &
           x(3) >= lb .and. x(3) < ub ) then
-        np_local=np_local+1
-        xvp(:3,np_local)=x
-        xp_buf(:,np_buf+pp)=xp_buf(:,np_buf+npi)
+        np_local = np_local + 1
+        xvp(:, np_local) = x
+        xp_buf(:, np_buf+pp) = xp_buf(:, np_buf+npi)
         PID(np_local) = p
         PID_buf(np_buf + pp) = PID_buf(np_buf + npi)
-        npi=npi-1
+        npi = npi - 1
         cycle
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
    
-    np_buf=np_buf+npi
+    np_buf = np_buf + npi
 
 #ifdef DEBUG
-    do i=0,nodes-1
-      if (rank==i) print *,rank,'x+ np_exit=',np_buf,np_local
-      call mpi_barrier(mpi_comm_world,ierr)
+    do i = 0, nodes-1
+      if (rank == i) print *, rank, 'x+ np_exit=', np_buf, np_local
+      call mpi_barrier(mpi_comm_world, ierr)
     enddo
 #endif 
 
-! pass -x
+    !
+    ! Pass -x
+    !
 
-    tag=12
-    npo=0
-    pp=1
+    tag = 13
+    tag2 = 14
+    npo = 0
+    pp  = 1
     do
       if (pp > np_buf) exit
-      if (xp_buf(1,pp) < lb) then
-        npo=npo+1
-        send_buf((npo-1)*3+1:npo*3)=xp_buf(:,pp)
-        xp_buf(:,pp)=xp_buf(:,np_buf)
+      if (xp_buf(1, pp) < lb) then
+        npo = npo + 1
+        send_buf((npo-1)*6+1:npo*6) = xp_buf(:, pp)
+        xp_buf(:, pp) = xp_buf(:, np_buf)
         send2_buf(npo) = PID_buf(pp)
         PID_buf(pp) = PID_buf(np_buf)
-        np_buf=np_buf-1
+        np_buf = np_buf - 1
         cycle 
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
 
     npi = npo
 
-    call mpi_sendrecv_replace(npi,1,mpi_integer,cart_neighbor(5), &
-                              tag,cart_neighbor(6),tag,mpi_comm_world, &
-                              status,ierr)
+    call mpi_sendrecv_replace(npi, 1, mpi_integer, cart_neighbor(5), &
+                              tag, cart_neighbor(6), tag, mpi_comm_world, &
+                              status, ierr)
+    
+    call mpi_isend(send_buf, npo*6, mpi_real, cart_neighbor(5), &
+                   tag, mpi_comm_world, srequest, sierr)
+    call mpi_irecv(recv_buf, npi*6, mpi_real, cart_neighbor(6), &
+                   tag, mpi_comm_world, rrequest, rierr)
+    call mpi_wait(srequest, sstatus, sierr)
+    call mpi_wait(rrequest, rstatus, rierr)
 
-    call mpi_isend(send_buf,npo*3,mpi_real,cart_neighbor(5), &
-                   tag,mpi_comm_world,srequest,sierr)
-    call mpi_irecv(recv_buf,npi*3,mpi_real,cart_neighbor(6), &
-                   tag,mpi_comm_world,rrequest,rierr)
-    call mpi_wait(srequest,sstatus,sierr)
-    call mpi_wait(rrequest,rstatus,rierr)
     call mpi_isend(send2_buf, npo, mpi_integer8, cart_neighbor(5), &
                    tag2, mpi_comm_world, srequest, sierr)
     call mpi_irecv(recv2_buf, npi, mpi_integer8, cart_neighbor(6), &
@@ -1107,64 +1145,67 @@ end subroutine read_ids
     call mpi_wait(srequest, sstatus, sierr)
     call mpi_wait(rrequest, rstatus, rierr)
 
-    do pp=1,npi
-      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*3+1:pp*3)
-      xp_buf(1,np_buf+pp)=min(xp_buf(1,np_buf+pp)+ub,ub-eps)
+    do pp = 1, npi
+      xp_buf(:, np_buf+pp) = recv_buf((pp-1)*6+1:pp*6)
+      xp_buf(1, np_buf+pp) = min(xp_buf(1,np_buf+pp) + ub, ub-eps)
       PID_buf(np_buf + pp) = recv2_buf(pp)
     enddo
 
-    pp=1
+    pp = 1
     do
       if (pp > npi) exit
-      x=xp_buf(:,np_buf+pp)
+      x = xp_buf(:, np_buf+pp)
       p = PID_buf(np_buf + pp)
       if (x(1) >= lb .and. x(1) < ub .and. x(2) >= lb .and. x(2) < ub .and. &
           x(3) >= lb .and. x(3) < ub ) then
-        np_local=np_local+1
-        xvp(:3,np_local)=x
-        xp_buf(:,np_buf+pp)=xp_buf(:,np_buf+npi)
+        np_local = np_local + 1
+        xvp(:, np_local) = x
+        xp_buf(:, np_buf+pp) = xp_buf(:, np_buf+npi)
         PID(np_local) = p
         PID_buf(np_buf + pp) = PID_buf(np_buf + npi)
-        npi=npi-1
+        npi = npi - 1
         cycle 
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
   
-    np_buf=np_buf+npi
+    np_buf = np_buf + npi
 
-! pass +y
+    !
+    ! Pass +y
+    !
 
-    tag=13 
-    npo=0
-    pp=1
+    tag = 15
+    tag2 = 16 
+    npo = 0
+    pp  = 1
     do 
       if (pp > np_buf) exit
-      if (xp_buf(2,pp) >= ub) then
-        npo=npo+1
-        send_buf((npo-1)*3+1:npo*3)=xp_buf(:,pp)
-        xp_buf(:,pp)=xp_buf(:,np_buf)
+      if (xp_buf(2, pp) >= ub) then
+        npo = npo + 1
+        send_buf((npo-1)*6+1:npo*6) = xp_buf(:, pp)
+        xp_buf(:, pp) = xp_buf(:, np_buf)
         send2_buf(npo) = PID_buf(pp)
         PID_buf(pp) = PID_buf(np_buf)
-        np_buf=np_buf-1
+        np_buf = np_buf - 1
         cycle 
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
 
     npi = npo
 
-    call mpi_sendrecv_replace(npi,1,mpi_integer,cart_neighbor(4), &
-                              tag,cart_neighbor(3),tag,mpi_comm_world, &
-                              status,ierr) 
+    call mpi_sendrecv_replace(npi, 1, mpi_integer, cart_neighbor(4), &
+                              tag, cart_neighbor(3), tag, mpi_comm_world, &
+                              status, ierr) 
 
-    call mpi_isend(send_buf,npo*3,mpi_real,cart_neighbor(4), &
-                   tag,mpi_comm_world,srequest,sierr)
-    call mpi_irecv(recv_buf,npi*3,mpi_real,cart_neighbor(3), &
-                   tag,mpi_comm_world,rrequest,rierr)
-    call mpi_wait(srequest,sstatus,sierr)
-    call mpi_wait(rrequest,rstatus,rierr)
-    
+    call mpi_isend(send_buf, npo*6, mpi_real, cart_neighbor(4), &
+                   tag, mpi_comm_world, srequest, sierr)
+    call mpi_irecv(recv_buf, npi*6, mpi_real, cart_neighbor(3), &
+                   tag, mpi_comm_world, rrequest, rierr)
+    call mpi_wait(srequest, sstatus, sierr)
+    call mpi_wait(rrequest, rstatus, rierr)
+
     call mpi_isend(send2_buf, npo, mpi_integer8, cart_neighbor(4), &
                    tag2, mpi_comm_world, srequest, sierr)
     call mpi_irecv(recv2_buf, npi, mpi_integer8, cart_neighbor(3), &
@@ -1172,63 +1213,67 @@ end subroutine read_ids
     call mpi_wait(srequest, sstatus, sierr)
     call mpi_wait(rrequest, rstatus, rierr)
 
-    do pp=1,npi
-      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*3+1:pp*3)
-      xp_buf(2,np_buf+pp)=max(xp_buf(2,np_buf+pp)-ub,lb)
+    do pp = 1, npi
+      xp_buf(:, np_buf+pp) = recv_buf((pp-1)*6+1:pp*6)
+      xp_buf(2, np_buf+pp) = max(xp_buf(2, np_buf+pp)-ub, lb)
       PID_buf(np_buf + pp) = recv2_buf(pp)
     enddo
 
-    pp=1
+    pp = 1
     do 
       if (pp > npi) exit 
-      x=xp_buf(:,np_buf+pp)
+      x = xp_buf(:, np_buf+pp)
       p = PID_buf(np_buf + pp)
       if (x(1) >= lb .and. x(1) < ub .and. x(2) >= lb .and. x(2) < ub .and. &
           x(3) >= lb .and. x(3) < ub ) then
-        np_local=np_local+1
-        xvp(:3,np_local)=x
-        xp_buf(:,np_buf+pp)=xp_buf(:,np_buf+npi)
+        np_local = np_local + 1
+        xvp(:, np_local) = x
+        xp_buf(:, np_buf+pp) = xp_buf(:, np_buf+npi)
         PID(np_local) = p
         PID_buf(np_buf + pp) = PID_buf(np_buf + npi)
-        npi=npi-1
+        npi = npi-1
         cycle 
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
    
-    np_buf=np_buf+npi
+    np_buf = np_buf + npi
 
-! pass -y
+    !
+    ! Pass -y
+    !
 
-    tag=14
-    npo=0
-    pp=1
+    tag = 17
+    tag2 = 18
+    npo = 0
+    pp  = 1
     do
       if (pp > np_buf) exit
       if (xp_buf(2,pp) < lb) then
-        npo=npo+1
-        send_buf((npo-1)*3+1:npo*3)=xp_buf(:,pp)
-        xp_buf(:,pp)=xp_buf(:,np_buf)
+        npo = npo+1
+        send_buf((npo-1)*6+1:npo*6) = xp_buf(:, pp)
+        xp_buf(:, pp) = xp_buf(:, np_buf)
         send2_buf(npo) = PID_buf(pp)
         PID_buf(pp) = PID_buf(np_buf)
-        np_buf=np_buf-1
+        np_buf = np_buf - 1
         cycle
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
 
     npi = npo
 
-    call mpi_sendrecv_replace(npi,1,mpi_integer,cart_neighbor(3), &
-                              tag,cart_neighbor(4),tag,mpi_comm_world, &
-                              status,ierr)
+    call mpi_sendrecv_replace(npi, 1, mpi_integer, cart_neighbor(3), &
+                              tag, cart_neighbor(4), tag, mpi_comm_world, &
+                              status, ierr)
 
-    call mpi_isend(send_buf,npo*3,mpi_real,cart_neighbor(3), &
-                   tag,mpi_comm_world,srequest,sierr)
-    call mpi_irecv(recv_buf,npi*3,mpi_real,cart_neighbor(4), &
-                   tag,mpi_comm_world,rrequest,rierr)
-    call mpi_wait(srequest,sstatus,sierr)
-    call mpi_wait(rrequest,rstatus,rierr)
+    call mpi_isend(send_buf, npo*6, mpi_real, cart_neighbor(3), &
+                   tag, mpi_comm_world, srequest, sierr)
+    call mpi_irecv(recv_buf, npi*6, mpi_real, cart_neighbor(4), &
+                   tag, mpi_comm_world, rrequest, rierr)
+    call mpi_wait(srequest, sstatus, sierr)
+    call mpi_wait(rrequest, rstatus, rierr)
+
     call mpi_isend(send2_buf, npo, mpi_integer8, cart_neighbor(3), &
                    tag2, mpi_comm_world, srequest, sierr)
     call mpi_irecv(recv2_buf, npi, mpi_integer8, cart_neighbor(4), &
@@ -1236,49 +1281,52 @@ end subroutine read_ids
     call mpi_wait(srequest, sstatus, sierr)
     call mpi_wait(rrequest, rstatus, rierr)
 
-    do pp=1,npi
-      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*3+1:pp*3)
-      xp_buf(2,np_buf+pp)=min(xp_buf(2,np_buf+pp)+ub,ub-eps)
+    do pp = 1, npi
+      xp_buf(:, np_buf+pp) = recv_buf((pp-1)*6+1:pp*6)
+      xp_buf(2, np_buf+pp) = min(xp_buf(2, np_buf+pp)+ub, ub-eps)
       PID_buf(np_buf + pp) = recv2_buf(pp)
     enddo
 
-    pp=1
+    pp = 1
     do
       if (pp > npi) exit
-      x=xp_buf(:,np_buf+pp)
+      x = xp_buf(:, np_buf+pp)
       p = PID_buf(np_buf + pp)
       if (x(1) >= lb .and. x(1) < ub .and. x(2) >= lb .and. x(2) < ub .and. &
           x(3) >= lb .and. x(3) < ub ) then
-        np_local=np_local+1
-        xvp(:3,np_local)=x
-        xp_buf(:,np_buf+pp)=xp_buf(:,np_buf+npi)
+        np_local = np_local+1
+        xvp(:, np_local) = x
+        xp_buf(:, np_buf+pp) = xp_buf(:, np_buf+npi)
         PID(np_local) = p
         PID_buf(np_buf + pp) = PID_buf(np_buf + npi)
         npi=npi-1
         cycle 
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
   
-    np_buf=np_buf+npi
+    np_buf = np_buf + npi
 
-! pass +z
+    !
+    ! Pass +z
+    !
 
-    tag=15 
-    npo=0
-    pp=1
+    tag = 19
+    tag2 = 20 
+    npo = 0
+    pp  = 1
     do 
       if (pp > np_buf) exit
-      if (xp_buf(3,pp) >= ub) then
-        npo=npo+1
-        send_buf((npo-1)*3+1:npo*3)=xp_buf(:,pp)
-        xp_buf(:,pp)=xp_buf(:,np_buf)
+      if (xp_buf(3, pp) >= ub) then
+        npo = npo + 1
+        send_buf((npo-1)*6+1:npo*6) = xp_buf(:, pp)
+        xp_buf(:, pp) = xp_buf(:, np_buf)
         send2_buf(npo) = PID_buf(pp)
         PID_buf(pp) = PID_buf(np_buf)
-        np_buf=np_buf-1
+        np_buf = np_buf - 1
         cycle 
       endif
-      pp=pp+1
+      pp = pp + 1
     enddo
 
     npi = npo
@@ -1287,12 +1335,13 @@ end subroutine read_ids
                               tag,cart_neighbor(1),tag,mpi_comm_world, &
                               status,ierr) 
 
-    call mpi_isend(send_buf,npo*3,mpi_real,cart_neighbor(2), &
+    call mpi_isend(send_buf,npo*6,mpi_real,cart_neighbor(2), &
                    tag,mpi_comm_world,srequest,sierr)
-    call mpi_irecv(recv_buf,npi*3,mpi_real,cart_neighbor(1), &
+    call mpi_irecv(recv_buf,npi*6,mpi_real,cart_neighbor(1), &
                    tag,mpi_comm_world,rrequest,rierr)
     call mpi_wait(srequest,sstatus,sierr)
     call mpi_wait(rrequest,rstatus,rierr)
+
     call mpi_isend(send2_buf, npo, mpi_integer8, cart_neighbor(2), &
                    tag2, mpi_comm_world, srequest, sierr)
     call mpi_irecv(recv2_buf, npi, mpi_integer8, cart_neighbor(1), &
@@ -1301,7 +1350,7 @@ end subroutine read_ids
     call mpi_wait(rrequest, rstatus, rierr)
 
     do pp=1,npi
-      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*3+1:pp*3)
+      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*6+1:pp*6)
       xp_buf(3,np_buf+pp)=max(xp_buf(3,np_buf+pp)-ub,lb)
       PID_buf(np_buf + pp) = recv2_buf(pp)
     enddo
@@ -1314,7 +1363,7 @@ end subroutine read_ids
       if (x(1) >= lb .and. x(1) < ub .and. x(2) >= lb .and. x(2) < ub .and. &
           x(3) >= lb .and. x(3) < ub ) then
         np_local=np_local+1
-        xvp(:3,np_local)=x
+        xvp(:,np_local)=x
         xp_buf(:,np_buf+pp)=xp_buf(:,np_buf+npi)
         PID(np_local) = p
         PID_buf(np_buf + pp) = PID_buf(np_buf + npi)
@@ -1326,16 +1375,19 @@ end subroutine read_ids
    
     np_buf=np_buf+npi
 
-! pass -z
+    !
+    ! Pass -z
+    !
 
-    tag=16
+    tag=21
+    tag2=22
     npo=0
     pp=1
     do
       if (pp > np_buf) exit
       if (xp_buf(3,pp) < lb) then
         npo=npo+1
-        send_buf((npo-1)*3+1:npo*3)=xp_buf(:,pp)
+        send_buf((npo-1)*6+1:npo*6)=xp_buf(:,pp)
         xp_buf(:,pp)=xp_buf(:,np_buf)
         send2_buf(npo) = PID_buf(pp)
         PID_buf(pp) = PID_buf(np_buf)
@@ -1351,12 +1403,13 @@ end subroutine read_ids
                               tag,cart_neighbor(2),tag,mpi_comm_world, &
                               status,ierr)
 
-    call mpi_isend(send_buf,npo*3,mpi_real,cart_neighbor(1), &
+    call mpi_isend(send_buf,npo*6,mpi_real,cart_neighbor(1), &
                    tag,mpi_comm_world,srequest,sierr)
-    call mpi_irecv(recv_buf,npi*3,mpi_real,cart_neighbor(2), &
+    call mpi_irecv(recv_buf,npi*6,mpi_real,cart_neighbor(2), &
                    tag,mpi_comm_world,rrequest,rierr)
     call mpi_wait(srequest,sstatus,sierr)
     call mpi_wait(rrequest,rstatus,rierr)
+
     call mpi_isend(send2_buf, npo, mpi_integer8, cart_neighbor(1), &
                    tag2, mpi_comm_world, srequest, sierr)
     call mpi_irecv(recv2_buf, npi, mpi_integer8, cart_neighbor(2), &
@@ -1365,7 +1418,7 @@ end subroutine read_ids
     call mpi_wait(rrequest, rstatus, rierr)
 
     do pp=1,npi
-      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*3+1:pp*3)
+      xp_buf(:,np_buf+pp)=recv_buf((pp-1)*6+1:pp*6)
       xp_buf(3,np_buf+pp)=min(xp_buf(3,np_buf+pp)+ub,ub-eps)
       PID_buf(np_buf + pp) = recv2_buf(pp)
     enddo
@@ -1378,7 +1431,7 @@ end subroutine read_ids
       if (x(1) >= lb .and. x(1) < ub .and. x(2) >= lb .and. x(2) < ub .and. &
           x(3) >= lb .and. x(3) < ub ) then
         np_local=np_local+1
-        xvp(:3,np_local)=x
+        xvp(:,np_local)=x
         xp_buf(:,np_buf+pp)=xp_buf(:,np_buf+npi)
         PID(np_local) = p
         PID_buf(np_buf + pp) = PID_buf(np_buf + npi)
@@ -1406,8 +1459,8 @@ end subroutine read_ids
                     mpi_comm_world,ierr)
 
     if (rank == 0) then
-      print *,'total particles =',int(np_final,8)
-      if (np_final /= (int(np,8))**3) then
+      print *,'total particles =',np_final
+      if (np_final /= np**3) then
         print *,'ERROR: total number of particles incorrect after passing'
       endif
     endif
@@ -1422,7 +1475,14 @@ end subroutine read_ids
       endif
     enddo
 
-  end subroutine pass_particles
+    !deallocate(PID_buf, send2_buf, recv2_buf)
+
+    time2 = mpi_wtime(ierr)
+    if (rank == 0) write(*, *) "Finished pass_particles ... elapsed time = ", time2-time1
+
+    return
+
+end subroutine pass_particles
 
 !------------------------------------------------------------!
 

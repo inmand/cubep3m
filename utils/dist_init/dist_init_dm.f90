@@ -13,7 +13,7 @@ program dist_init
   include '../../parameters'
 
   integer,parameter  :: nt=1
-  logical, parameter :: generate_seeds = .false.
+  logical, parameter :: generate_seeds = .true.
   logical, parameter :: correct_kernel=.true.
 
   !! Cosmo parameters - wmap3+
