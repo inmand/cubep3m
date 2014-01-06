@@ -11,6 +11,14 @@ program dist_init
   implicit none
   include 'mpif.h'
   include '../../parameters'
+  
+  !! Neutrino parameters
+!Do neutrinos?
+!unneeded...logical,parameter       :: nu_flag = .true.
+!Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
+integer(4),parameter	:: r_n_nucdm = 9
+!Omega parameters
+real(4),parameter    :: Onu = 0.0001
 
   integer,parameter  :: nt=1
   logical, parameter :: generate_seeds = .true.
@@ -52,7 +60,7 @@ program dist_init
 
   !! np is the number of particles
   !! np should be set to nc (1:1), hc (1:2), or qc (1:4)
-  integer, parameter :: np=hc
+  integer, parameter :: np=hc*(r_n_nucdm-1)
   real, parameter    :: npr=np
 
   !! internal parallelization parameters
@@ -1001,7 +1009,7 @@ contains
 
     write(rank_s,'(i6)') rank
     rank_s=adjustl(rank_s)
-    fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'.ic'
+    fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
     open(11,file=fn,form=IOform,iostat=ioerr)
     if (ioerr /= 0) then
       print *,'error opening:',fn

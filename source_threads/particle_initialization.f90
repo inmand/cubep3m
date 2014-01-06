@@ -18,7 +18,7 @@
 
     fstat=0
 
-    np_local=(nf_physical_node_dim/2)**3*(r_n_nucdm+1)
+    np_local=(nf_physical_node_dim/2)**3*(r_n_nucdm)
 
 !! set flag in cubepm.par to select desired initial conditions
  
@@ -201,11 +201,23 @@
 
       ofile=ic_path//'xv'//rank_s(1:len_trim(rank_s))//'.ic'
       print *,'opening particle list:',ofile(1:len_trim(ofile))
+      
 #ifdef BINARY
       open(unit=20,file=ofile,form='binary',iostat=fstat,status='old')
 #else
       open(unit=20,file=ofile,form='unformatted',iostat=fstat,status='old')
 #endif
+
+!!Neutrinos:
+      ofile2=ic_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
+      print *,'opening neutrino particle list:',ofile(1:len_trim(ofil2))
+
+#ifdef BINARY
+      open(unit=21,file=ofile2,form='binary',iostat=fstat,status='old')
+#else
+      open(unit=21,file=ofile2,form='unformatted',iostat=fstat,status='old')
+#endif
+
       if (fstat /= 0) then
          write(*,*) 'error opening initial conditions'
          write(*,*) 'rank',rank,'file:',ofile
@@ -225,10 +237,21 @@
               read(20) xv(:,i)
             enddo
 #else
-      read(20) xv(:,:np_local)
+
+
+!!Neutrinos:
+      do i=1,np_local/r_n_nucdm
+        read(20) xv(:,(i-1)*r_n_nucdm+1)
+        do j=2,r_n_nucdm
+            read(21) xv(:,(i-1)*r_n_nucdm+j)
+        enddo
+      enddo
+
+      !!read(20) xv(:,:np_local)
 #endif
       close(20)
-
+      close(21)
+      
 #ifdef PID_FLAG
       write(*,*) 'np_local before delete', np_local, 'rank =', rank
       !call delete_particles
