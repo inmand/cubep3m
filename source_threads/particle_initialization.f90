@@ -210,7 +210,7 @@
 
 !!Neutrinos:
       ofile2=ic_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
-      print *,'opening neutrino particle list:',ofile(1:len_trim(ofil2))
+      print *,'opening neutrino particle list:',ofile(1:len_trim(ofile2))
 
 #ifdef BINARY
       open(unit=21,file=ofile2,form='binary',iostat=fstat,status='old')
