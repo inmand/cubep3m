@@ -43,8 +43,11 @@ real(4),parameter    :: Onu = 0.0001
 !  integer, parameter      :: nk=437
 !  character(*), parameter :: fntf='CAMB_BAO_Tf_CAMB_BAO.dat'
 
-  integer, parameter      :: nk=922
-  character(*), parameter :: fntf='dbi_tfn_nu.dat'
+!  integer, parameter      :: nk=922
+!  character(*), parameter :: fntf='dbi_tfn_nu.dat'
+
+  integer, parameter      :: nk=562
+  character(*), parameter :: fntf='camb.dat'
 
   !! IOform should be 'binary' or 'unformatted'
 #ifdef BINARY
