@@ -9,7 +9,7 @@
     real(4) :: rnum,z_write
     integer(4) :: i,j,k,pp,fstat,blocksize,num_writes,nplow,nphigh
     integer*8 :: np_total,npl8
-    character(len=max_path) :: ofile
+    character(len=max_path) :: ofile,ofile2
     character(len=4) :: rank_s
     character(len=7) :: z_s
 #ifdef CHECK_IP
