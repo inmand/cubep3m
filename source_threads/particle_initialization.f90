@@ -209,9 +209,11 @@
 #endif
 
 !!Neutrinos:
+    if (nu_flag) then
       ofile2=ic_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
-      print *,'opening neutrino particle list:',ofile(1:len_trim(ofile2))
-
+      print *,'opening neutrino particle list:',ofile2(1:len_trim(ofile2))
+    end if
+    
 #ifdef BINARY
       open(unit=21,file=ofile2,form='binary',iostat=fstat,status='old')
 #else
@@ -240,18 +242,21 @@
 
 
 !!Neutrinos:
+    if (nu_flag) then
       do i=1,np_local/r_n_nucdm
         read(20) xv(:,(i-1)*r_n_nucdm+1)
         do j=2,r_n_nucdm
             read(21) xv(:,(i-1)*r_n_nucdm+j)
         enddo
       enddo
-
-      !!read(20) xv(:,:np_local)
+    else
+      read(20) xv(:,:np_local)
+    end if
 #endif
       close(20)
-      close(21)
-      
+      if (nu_flag) then
+          close(21)
+      end if  
 #ifdef PID_FLAG
       write(*,*) 'np_local before delete', np_local, 'rank =', rank
       !call delete_particles
