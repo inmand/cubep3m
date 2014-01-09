@@ -212,7 +212,7 @@
 #endif
 
 !!Neutrinos:
-    if (nu_flag) then
+    if (nu_flag .AND. nu_init) then
       ofile2=ic_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
       print *,'opening neutrino particle list:',ofile2(1:len_trim(ofile2))
 
@@ -230,7 +230,7 @@
          write(*,*) 'rank',rank,'file:',ofile
          call mpi_abort(mpi_comm_world,ierr,ierr)
       endif
-      if (nu_flag) then
+      if (nu_flag .AND. nu_init) then
           read(20) np_local
           np_local = np_local*r_n_nucdm
       else
@@ -252,7 +252,7 @@
 
 
 !!Neutrinos:
-    if (nu_flag) then
+    if (nu_flag .AND. nu_init) then
       do i=1,np_local/r_n_nucdm
         do j=1,r_n_nucdm-1
             read(21) xv(:,(i-1)*r_n_nucdm+j)
