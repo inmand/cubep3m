@@ -9,9 +9,7 @@
     real(4) :: rnum,z_write
     integer(4) :: i,j,k,pp,fstat,blocksize,num_writes,nplow,nphigh
     
-    if (nu_flag .AND. nu_init) then
-        integer(4) :: np_dm,np_nu
-    endif
+    integer(4) :: np_dm,np_nu
     
     integer*8 :: np_total,npl8
     character(len=max_path) :: ofile,ofile2
