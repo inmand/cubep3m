@@ -29,7 +29,11 @@
        if (i < hoc_nc_l .or. i > hoc_nc_h .or. &
            j < hoc_nc_l .or. j > hoc_nc_h .or. &
            k < hoc_nc_l .or. k > hoc_nc_h) then
-         write (*,*) 'PARTICLE DELETED',xv(:,pp) 
+         if (nu_flag and ( mod(PID(pp),r_n_nucdm) .NE. 0 ) then
+             write (*,*) 'NEUTRINO DELETED',xv(:,pp)
+         else
+             write (*,*) 'PARTICLE DELETED',xv(:,pp)
+         endif 
          xv(:,pp)=xv(:,np_local)
 
 #ifdef PID_FLAG

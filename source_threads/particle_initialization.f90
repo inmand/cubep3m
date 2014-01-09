@@ -18,8 +18,11 @@
 
     fstat=0
 
-    np_local=(nf_physical_node_dim/2)**3*(r_n_nucdm)
-
+    if (nu_flag) then
+        np_local=(nf_physical_node_dim/2)**3*(r_n_nucdm)
+    else
+        np_local = (nf_physical_node_dim/2)**3
+    endif
 !! set flag in cubepm.par to select desired initial conditions
  
     if (random_ic) then
@@ -212,7 +215,7 @@
     if (nu_flag) then
       ofile2=ic_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
       print *,'opening neutrino particle list:',ofile2(1:len_trim(ofile2))
-    end if
+
     
 #ifdef BINARY
       open(unit=21,file=ofile2,form='binary',iostat=fstat,status='old')
@@ -220,12 +223,19 @@
       open(unit=21,file=ofile2,form='unformatted',iostat=fstat,status='old')
 #endif
 
+    end if
+
       if (fstat /= 0) then
          write(*,*) 'error opening initial conditions'
          write(*,*) 'rank',rank,'file:',ofile
          call mpi_abort(mpi_comm_world,ierr,ierr)
       endif
-      read(20) np_local
+      if (nu_flag) then
+          read(20) np_local
+          np_local = np_local*r_n_nucdm
+      else
+          read(20) np_local
+      endif
       !      np_local=100**3
       if (np_local > max_np) then
          write(*,*) 'too many particles to store'
@@ -244,11 +254,17 @@
 !!Neutrinos:
     if (nu_flag) then
       do i=1,np_local/r_n_nucdm
-        read(20) xv(:,(i-1)*r_n_nucdm+1)
-        do j=2,r_n_nucdm
+        do j=1,r_n_nucdm-1
             read(21) xv(:,(i-1)*r_n_nucdm+j)
         enddo
+        read(20) xv(:,(i-1)*r_n_nucdm+r_n_nucdm)
       enddo
+      !do i=1,np_local-1,r_n_nucdm
+      !  read(20) xv(:,i)
+      !enddo
+      !do i=2,np_local,r_n_nucdm
+      !  read(21) xv(:,i)
+      !enddo
     else
       read(20) xv(:,:np_local)
     end if

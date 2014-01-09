@@ -31,7 +31,7 @@ real(4),parameter    :: Onu = 0.0001
   real, parameter :: ns=0.96 
   real, parameter :: s8=0.817 
   real, parameter :: omegal=omega_l 
-  real, parameter :: omegam=1.0-omegal 
+  real, parameter :: omegam=Onu!!1.0-omegal 
 
   real, parameter :: redshift=z_i 
   real, parameter :: scalefactor=1/(1+redshift)
