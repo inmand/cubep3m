@@ -8,6 +8,10 @@
 
     real(4) :: rnum,z_write
     integer(4) :: i,j,k,pp,fstat,blocksize,num_writes,nplow,nphigh
+    
+    if (nu_flag .AND. nu_init)
+    integer(4) :: np_dm,np_nu
+    
     integer*8 :: np_total,npl8
     character(len=max_path) :: ofile,ofile2
     character(len=4) :: rank_s
@@ -231,8 +235,13 @@
          call mpi_abort(mpi_comm_world,ierr,ierr)
       endif
       if (nu_flag .AND. nu_init) then
-          read(20) np_local
-          np_local = np_local*r_n_nucdm
+          read(20) np_dm
+          read(21) np_nu
+          np_local = np_nu + np_dm
+          if (np_local .NE. np_dm * r_n_nucdm) then
+            write(*,*) 'error in particle_initialization.f90 - np_local NEQ np_dm*r_n'
+            call mpi_abort(mpi_comm_world,ierr,ierr)
+         endif
       else
           read(20) np_local
       endif
