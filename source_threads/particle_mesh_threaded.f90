@@ -342,7 +342,7 @@
 #else          
               force_pp=mass_p*(sep/(rmag*pp_bias)**3)  !mass_p divides out below
 #endif
-                        if (nu_flag) then
+                        if (nu_flag .AND. nu_force) then
                             if ( (mod(PID(pp1),r_n_nucdm) .NE. 0) .AND. (mod(PID(pp2),r_n_nucdm) .NE. 0) ) then
                                 pp_force_accum(:,ip,thread)=pp_force_accum(:,ip,thread)-force_pp*r_m_nucdm/(r_n_nucdm-1.0)
                                 pp_force_accum(:,jp,thread)=pp_force_accum(:,jp,thread)+force_pp*r_m_nucdm/(r_n_nucdm-1.0)
