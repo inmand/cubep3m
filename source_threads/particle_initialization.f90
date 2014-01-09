@@ -9,8 +9,9 @@
     real(4) :: rnum,z_write
     integer(4) :: i,j,k,pp,fstat,blocksize,num_writes,nplow,nphigh
     
-    if (nu_flag .AND. nu_init)
-    integer(4) :: np_dm,np_nu
+    if (nu_flag .AND. nu_init) then
+        integer(4) :: np_dm,np_nu
+    endif
     
     integer*8 :: np_total,npl8
     character(len=max_path) :: ofile,ofile2
@@ -22,7 +23,7 @@
 
     fstat=0
 
-    if (nu_flag) then
+    if (nu_flag .AND. nu_init) then
         np_local=(nf_physical_node_dim/2)**3*(r_n_nucdm)
     else
         np_local = (nf_physical_node_dim/2)**3
