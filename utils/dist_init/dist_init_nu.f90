@@ -12,13 +12,23 @@ program dist_init
   include 'mpif.h'
   include '../../parameters'
   
-  !! Neutrino parameters
+!! Neutrino parameters
 !Do neutrinos?
-!unneeded...logical,parameter       :: nu_flag = .true.
+logical,parameter       :: nu_flag = .true.
+!debug params
+logical,parameter       :: nu_force = .true.
+logical,parameter       :: nu_init = .true.
+logical,parameter       :: nu_random = .true.
+logical,parameter       :: nu_write_vel = .true.
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
 integer(4),parameter	:: r_n_nucdm = 2
 !Omega parameters
-real(4),parameter    :: Onu = 0.001
+real(4),parameter    :: mass_neutrino = 0.01 !ev
+real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
+!Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
+real(4),parameter    :: r_m_nucdm = Onu/omega_m
+!Omega_dm/Omega_m = (Omega_dm)/(Omega_dm+Omega_nu) = 1-Omega_Nu/(Omega_dm+Omega_nu)
+
 real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
 
   integer,parameter  :: nt=1
