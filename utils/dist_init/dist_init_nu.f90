@@ -1041,36 +1041,41 @@ contains
              xvp(2)=dis(2)+(j1-0.5)
              xvp(3)=dis(3)+(k1-0.5)
              if (nu_flag .AND. nu_init) then
-                !uniform random #
-                call random_number(rnum1)
-                call random_number(rnum2)
+                if (nu_random) then 
+                    !uniform random #
+                    call random_number(rnum1)
+                    call random_number(rnum2)
+                    
+                    !convert to gaussian 
+                    rnum3=2*pi*rnum1
+                    rnum4=sqrt(-2*log(rnum2))
                 
-                !convert to gaussian 
-                rnum3=2*pi*rnum1
-                rnum4=sqrt(-2*log(rnum2))
+                    rnum1=rnum4*cos(rnum3)
+                    rnum2=rnum4*sin(rnum3)
                 
-                rnum1=rnum4*cos(rnum3)
-                rnum2=rnum4*sin(rnum3)
+                    !Convert to real gaussian using dispersion
+                    !scale factor cancels out in velocity dispersion and conversion factor
+                    !sigma_nu = 181km/s / (mnu * a)
+                    rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+                    rnum2 = rnum2*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
                 
-                !Convert to real gaussian using dispersion
-                !scale factor cancels out in velocity dispersion and conversion factor
-                !sigma_nu = 181km/s / (mnu * a)
-                rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
-                rnum2 = rnum2*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+                    xvp(4)=dis(1)*vf + rnum1 
+                    xvp(5)=dis(2)*vf + rnum2
                 
-                xvp(4)=dis(1)*vf + rnum1 
-                xvp(5)=dis(2)*vf + rnum2
+                    call random_number(rnum1)
+                    call random_number(rnum2)
+                    
+                    rnum3=2*pi*rnum1
+                    rnum4=sqrt(-2*log(rnum2))
                 
-                call random_number(rnum1)
-                call random_number(rnum2)
-                
-                rnum3=2*pi*rnum1
-                rnum4=sqrt(-2*log(rnum2))
-                
-                rnum1=rnum4*cos(rnum3)
-                rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+                    rnum1=rnum4*cos(rnum3)
+                    rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
 
-                xvp(6)=dis(3)*vf + rnum1
+                    xvp(6)=dis(3)*vf + rnum1
+                else
+                    xvp(4)=dis(1)*vf
+                    xvp(5)=dis(2)*vf
+                    xvp(6)=dis(3)*vf
              else
                 xvp(4)=dis(1)*vf
                 xvp(5)=dis(2)*vf

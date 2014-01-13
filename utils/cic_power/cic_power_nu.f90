@@ -20,8 +20,8 @@ program cic_power
   
   !Neutrino params
   logical, parameter    :: nu_flag = .true.
-  logical, parameter    :: just_nu = .false.
-  logical, parameter    :: just_cdm = .true.
+  logical, parameter    :: just_nu = .true.
+  logical, parameter    :: just_cdm = .false.
   integer(4),parameter    :: r_n_nucdm = 2
   !Omega parameters
 real(4),parameter    :: mass_neutrino = 0.01 !ev
@@ -705,7 +705,7 @@ end subroutine read_ids
 #ifdef KAISER
     fn=output_path//z_write(1:len_trim(z_write))//prefix//'-RSD.dat' 
 #else
-    fn=output_path//z_write(1:len_trim(z_write))//prefix//'.dat' 
+    fn=output_path//z_write(1:len_trim(z_write))//prefix//'_nu.dat' 
 #endif
 
     write(*,*) 'Writing ',fn
@@ -785,7 +785,7 @@ end subroutine read_ids
                rank_string(1:len_trim(rank_string))//'-rsd.dat'
 #else 
     check_name=output_path//z_string(1:len_trim(z_string))//'den'// &
-               rank_string(1:len_trim(rank_string))//'.dat'
+               rank_string(1:len_trim(rank_string))//'_nu.dat'
 #endif
 
 !! open and write density file   

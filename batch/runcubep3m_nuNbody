@@ -53,6 +53,7 @@ mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/dist_init/dist_ini
 #mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/mhd_init/mhd_init >& $LOCAL_SCRATCH_PATH/mhd_init$RUN_SUFFIX
 mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../source_threads/cubep3m >& $LOCAL_SCRATCH_PATH/cubep3m$RUN_SUFFIX
 mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../utils/cic_power/ngp_power >& $LOCAL_SCRATCH_PATH/ngp_power$RUN_SUFFIX
+mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../utils/cic_power/ngp_power_nu >& $LOCAL_SCRATCH_PATH/ngp_power_nu$RUN_SUFFIX
 #mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_args ../utils/cic_power/ngp_power_mhd >& $LOCAL_SCRATCH_PATH/ngp_power_mhd$RUN_SUFFIX
 
 #

@@ -14,7 +14,8 @@ character(*), parameter :: kernel_path=cubepm_root//'kernels/'
 logical,parameter       :: nu_flag = .true.
 !debug params
 logical,parameter       :: nu_force = .true.
-logical,parameter       :: nu_init = .false.
+logical,parameter       :: nu_init = .true.
+logical,parameter       :: nu_random = .true.
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
 integer(4),parameter	:: r_n_nucdm = 2
 !Omega parameters
