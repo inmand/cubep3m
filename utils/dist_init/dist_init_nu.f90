@@ -16,9 +16,9 @@ program dist_init
 !Do neutrinos?
 !unneeded...logical,parameter       :: nu_flag = .true.
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
-integer(4),parameter	:: r_n_nucdm = 9
+integer(4),parameter	:: r_n_nucdm = 2
 !Omega parameters
-real(4),parameter    :: Onu = 0.0001
+real(4),parameter    :: Onu = 0.001
 
   integer,parameter  :: nt=1
   logical, parameter :: generate_seeds = .true.
@@ -31,7 +31,7 @@ real(4),parameter    :: Onu = 0.0001
   real, parameter :: ns=0.96 
   real, parameter :: s8=0.817 
   real, parameter :: omegal=omega_l 
-  real, parameter :: omegam=Onu!!1.0-omegal 
+  real, parameter :: omegam=1.0-omegal 
 
   real, parameter :: redshift=z_i 
   real, parameter :: scalefactor=1/(1+redshift)
@@ -1000,6 +1000,7 @@ contains
     integer :: i1,j1,k1,lb,ub
     real    :: d,dmin,dmax,sum_dm,sum_dm_local,dmint,dmaxt,vf,xvp(6)
     real*8  :: dsum,dvar,dsumt,dvart
+    real(4)    :: rnum1,rnum2,rnum3,rnum4
     real, dimension(3) :: dis,x
     real*8, dimension(3) :: xav
     character*180 :: fn
@@ -1039,9 +1040,42 @@ contains
              xvp(1)=dis(1)+(i1-0.5)
              xvp(2)=dis(2)+(j1-0.5)
              xvp(3)=dis(3)+(k1-0.5)
-             xvp(4)=dis(1)*vf
-             xvp(5)=dis(2)*vf
-             xvp(6)=dis(3)*vf
+             if (nu_flag .AND. nu_init) then
+                !uniform random #
+                call random_number(rnum1)
+                call random_number(rnum2)
+                
+                !convert to gaussian 
+                rnum3=2*pi*rnum1
+                rnum4=sqrt(-2*log(rnum2))
+                
+                rnum1=rnum4*cos(rnum3)
+                rnum2=rnum4*sin(rnum3)
+                
+                !Convert to real gaussian using dispersion
+                !scale factor cancels out in velocity dispersion and conversion factor
+                !sigma_nu = 181km/s / (mnu * a)
+                rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+                rnum2 = rnum2*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+                
+                xvp(4)=dis(1)*vf + rnum1 
+                xvp(5)=dis(2)*vf + rnum2
+                
+                call random_number(rnum1)
+                call random_number(rnum2)
+                
+                rnum3=2*pi*rnum1
+                rnum4=sqrt(-2*log(rnum2))
+                
+                rnum1=rnum4*cos(rnum3)
+                rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+
+                xvp(6)=dis(3)*vf + rnum1
+             else
+                xvp(4)=dis(1)*vf
+                xvp(5)=dis(2)*vf
+                xvp(6)=dis(3)*vf
+             endif
              write(11) xvp
           enddo
        enddo
