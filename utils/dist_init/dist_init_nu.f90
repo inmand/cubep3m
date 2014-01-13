@@ -29,7 +29,7 @@ real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
 real(4),parameter    :: r_m_nucdm = Onu/omega_m
 !Omega_dm/Omega_m = (Omega_dm)/(Omega_dm+Omega_nu) = 1-Omega_Nu/(Omega_dm+Omega_nu)
 
-real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(300.0*(omega_m)**0.5/2.0/nc)
 
   integer,parameter  :: nt=1
   logical, parameter :: generate_seeds = .true.
@@ -1094,6 +1094,7 @@ contains
                     xvp(4)=dis(1)*vf
                     xvp(5)=dis(2)*vf
                     xvp(6)=dis(3)*vf
+                endif
              else
                 xvp(4)=dis(1)*vf
                 xvp(5)=dis(2)*vf
