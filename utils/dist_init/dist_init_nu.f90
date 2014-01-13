@@ -19,6 +19,7 @@ program dist_init
 integer(4),parameter	:: r_n_nucdm = 2
 !Omega parameters
 real(4),parameter    :: Onu = 0.001
+real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
 
   integer,parameter  :: nt=1
   logical, parameter :: generate_seeds = .true.
@@ -401,6 +402,7 @@ contains
     write(*,*) 'box      ',box
     write(*,*) 'redshift ',redshift
     write(*,*)
+    write(*,*) 'Vphys2sim ',Vphys2sim
 
 #ifdef MY_TRANSFER
     write(*,*) 'power index',power_index
@@ -1056,8 +1058,8 @@ contains
                     !Convert to real gaussian using dispersion
                     !scale factor cancels out in velocity dispersion and conversion factor
                     !sigma_nu = 181km/s / (mnu * a)
-                    rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
-                    rnum2 = rnum2*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+                    rnum1 = rnum1*Vphys2sim
+                    rnum2 = rnum2*Vphys2sim
                 
                     xvp(4)=dis(1)*vf + rnum1 
                     xvp(5)=dis(2)*vf + rnum2
@@ -1069,9 +1071,15 @@ contains
                     rnum4=sqrt(-2*log(rnum2))
                 
                     rnum1=rnum4*cos(rnum3)
-                    rnum1 = rnum1*(180.8892437/mass_neutrinos)/(300.0*(omega_m)**0.5/2.0/nc)
+                    rnum3 = rnum1*Vphys2sim
 
-                    xvp(6)=dis(3)*vf + rnum1
+                    xvp(6)=dis(3)*vf + rnum3
+                    
+                    if (nu_write_vel) then
+                        write(*,*) 'NU RAN VEL ',rnum1,rnum2,rnum3
+                        write(*,*) 'NU LIN VEL ',dis(1)*vf,dis(2)*vf,dis(3)*vf
+                    endif
+                    
                 else
                     xvp(4)=dis(1)*vf
                     xvp(5)=dis(2)*vf
