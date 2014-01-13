@@ -1074,14 +1074,14 @@ contains
                     xvp(4)=dis(1)*vf + rnum1 
                     xvp(5)=dis(2)*vf + rnum2
                 
-                    call random_number(rnum1)
-                    call random_number(rnum2)
+                    call random_number(rnum3)
+                    call random_number(rnum4)
                     
-                    rnum3=2*pi*rnum1
-                    rnum4=sqrt(-2*log(rnum2))
+                    rnum3=2*pi*rnum3
+                    rnum4=sqrt(-2*log(rnum4))
                 
-                    rnum1=rnum4*cos(rnum3)
-                    rnum3 = rnum1*Vphys2sim
+                    rnum3=rnum4*cos(rnum3)
+                    rnum3 = rnum3*Vphys2sim
 
                     xvp(6)=dis(3)*vf + rnum3
                     
