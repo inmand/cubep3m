@@ -14,15 +14,15 @@ program dist_init
   
 !! Neutrino parameters
 !Do neutrinos?
-logical,parameter       :: nu_flag = .true.
+logical,parameter       :: nu_flag = .true. !turns off all neutrino stuff 
 !debug params
-logical,parameter       :: nu_force = .true.
+logical,parameter       :: nu_dist = .false. !turns off all of neutrino stuff in dist_init
 logical,parameter       :: nu_random = .true.
 logical,parameter       :: nu_write_vel = .true.
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
 integer(4),parameter	:: r_n_nucdm = 2
 !Omega parameters
-real(4),parameter    :: mass_neutrino = 0.01 !ev
+real(4),parameter    :: mass_neutrino = 1.5 !ev
 real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
 !Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
 real(4),parameter    :: r_m_nucdm = Onu/omega_m
@@ -59,7 +59,7 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
   integer, parameter      :: nk=562
   character(*) :: fntf='camb.dat'
   
-  if (nu_flag) then
+  if (nu_flag .AND. nu_dist) then
     fntf='camb_nu.dat'
   endif
 
@@ -77,7 +77,11 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
 
   !! np is the number of particles
   !! np should be set to nc (1:1), hc (1:2), or qc (1:4)
-  integer, parameter :: np=hc*(r_n_nucdm-1)
+  
+  integer :: np=hc
+  if (nu_flag .AND. nu_dist) then
+    np=hc*(r_n_nucdm-1)
+  endif
   real, parameter    :: npr=np
 
   !! internal parallelization parameters
@@ -1028,7 +1032,7 @@ contains
 
     write(rank_s,'(i6)') rank
     rank_s=adjustl(rank_s)
-    if (nu_flag) then
+    if (nu_flag .AND. nu_dist) then
         fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
     else 
         fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'.ic'
@@ -1059,7 +1063,7 @@ contains
              xvp(1)=dis(1)+(i1-0.5)
              xvp(2)=dis(2)+(j1-0.5)
              xvp(3)=dis(3)+(k1-0.5)
-             if (nu_flag .AND. nu_random) then 
+             if (nu_flag .AND. nu_dist .AND. nu_random) then 
                     !uniform random #
                     call random_number(rnum1)
                     call random_number(rnum2)
