@@ -57,11 +57,7 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
 !  character(*), parameter :: fntf='dbi_tfn_nu.dat'
 
   integer, parameter      :: nk=562
-  character(*) :: fntf='camb.dat'
-  
-  if (nu_flag .AND. nu_dist) then
-    fntf='camb_nu.dat'
-  endif
+  character(*),parameter :: fntf='camb.dat'
 
   !! IOform should be 'binary' or 'unformatted'
 #ifdef BINARY
@@ -78,10 +74,8 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
   !! np is the number of particles
   !! np should be set to nc (1:1), hc (1:2), or qc (1:4)
   
-  integer :: np=hc
-  if (nu_flag .AND. nu_dist) then
-    np=hc*(r_n_nucdm-1)
-  endif
+  integer,parameter :: np=hc*(r_n_nucdm-1)
+
   real, parameter    :: npr=np
 
   !! internal parallelization parameters
