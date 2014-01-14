@@ -278,7 +278,7 @@
     end if
 #endif
       close(20)
-      if (nu_flag) then
+      if (nu_flag .AND. nu_init) then
           close(21)
       end if  
 #ifdef PID_FLAG

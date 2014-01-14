@@ -17,7 +17,6 @@ program dist_init
 logical,parameter       :: nu_flag = .true.
 !debug params
 logical,parameter       :: nu_force = .true.
-logical,parameter       :: nu_init = .true.
 logical,parameter       :: nu_random = .true.
 logical,parameter       :: nu_write_vel = .true.
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
@@ -58,7 +57,11 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
 !  character(*), parameter :: fntf='dbi_tfn_nu.dat'
 
   integer, parameter      :: nk=562
-  character(*), parameter :: fntf='camb.dat'
+  character(*) :: fntf='camb.dat'
+  
+  if (nu_flag) then
+    fntf='camb_nu.dat'
+  endif
 
   !! IOform should be 'binary' or 'unformatted'
 #ifdef BINARY
@@ -1025,7 +1028,11 @@ contains
 
     write(rank_s,'(i6)') rank
     rank_s=adjustl(rank_s)
-    fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
+    if (nu_flag) then
+        fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
+    else 
+        fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'.ic'
+    endif
     open(11,file=fn,form=IOform,iostat=ioerr)
     if (ioerr /= 0) then
       print *,'error opening:',fn
@@ -1052,8 +1059,7 @@ contains
              xvp(1)=dis(1)+(i1-0.5)
              xvp(2)=dis(2)+(j1-0.5)
              xvp(3)=dis(3)+(k1-0.5)
-             if (nu_flag .AND. nu_init) then
-                if (nu_random) then 
+             if (nu_flag .AND. nu_random) then 
                     !uniform random #
                     call random_number(rnum1)
                     call random_number(rnum2)
@@ -1090,15 +1096,10 @@ contains
                         write(*,*) 'NU LIN VEL ',dis(1)*vf,dis(2)*vf,dis(3)*vf
                     endif
                     
-                else
+            else
                     xvp(4)=dis(1)*vf
                     xvp(5)=dis(2)*vf
                     xvp(6)=dis(3)*vf
-                endif
-             else
-                xvp(4)=dis(1)*vf
-                xvp(5)=dis(2)*vf
-                xvp(6)=dis(3)*vf
              endif
              write(11) xvp
           enddo
