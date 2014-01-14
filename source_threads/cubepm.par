@@ -14,7 +14,7 @@ character(*), parameter :: kernel_path=cubepm_root//'kernels/'
 logical,parameter       :: nu_flag = .true. !turns off all neutrino stuff
 !debug params
 logical,parameter       :: nu_force = .true. !turns off all force calculations
-logical,parameter       :: nu_init = .true. !turns off particle_initialization
+logical,parameter       :: nu_init = .true. !turns off particle_initialization - no need to use this as particle init is reading in from dist init
 logical,parameter       :: nu_dist = .true. !unused for now - used in dist_init to restore everything to dark matter
 logical,parameter       :: nu_random = .true. !unused for now - used in dist_init
 logical,parameter       :: nu_write_vel = .true. !unused for now - used in dist_init

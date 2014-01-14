@@ -1034,7 +1034,9 @@ contains
     rank_s=adjustl(rank_s)
     if (nu_flag .AND. nu_dist) then
         fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
-    else 
+    else if (nu_flag)
+        fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
+    else
         fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'.ic'
     endif
     open(11,file=fn,form=IOform,iostat=ioerr)
