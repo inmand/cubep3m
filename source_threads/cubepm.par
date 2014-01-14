@@ -17,11 +17,11 @@ logical,parameter       :: nu_force = .true. !turns off all force calculations
 logical,parameter       :: nu_init = .true. !turns off particle_initialization
 logical,parameter       :: nu_dist = .true. !unused for now - used in dist_init to restore everything to dark matter
 logical,parameter       :: nu_random = .true. !unused for now - used in dist_init
-logical,parameter       :: nu_write_vel = .true. ! see above
+logical,parameter       :: nu_write_vel = .true. !unused for now - used in dist_init
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
 integer(4),parameter	:: r_n_nucdm = 2
 !Omega parameters
-real(4),parameter    :: mass_neutrino = 0.01 !ev
+real(4),parameter    :: mass_neutrino = 1.5 !ev
 real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
 !Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
 real(4),parameter    :: r_m_nucdm = Onu/omega_m

@@ -24,7 +24,7 @@ program cic_power
   logical, parameter    :: just_cdm = .false.
   integer(4),parameter    :: r_n_nucdm = 2
   !Omega parameters
-real(4),parameter    :: mass_neutrino = 0.01 !ev
+real(4),parameter    :: mass_neutrino = 1.5 !ev
 real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
   !Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
   real(4),parameter    :: r_m_nucdm = Onu/omega_m
