@@ -442,7 +442,7 @@ contains
     !! 3rd is standard deviation
     !! 6th is noise p(k)
     !! 7th is noise standard deviation
-    fn=output_path//'pk.init'
+    fn=output_path//'pk_nu.init'
     write(*,*) 'Writing ',fn
     open(11,file=fn,recl=500)
     do k=2,hc+1
@@ -452,7 +452,7 @@ contains
     close(11)
 
     !! Output cmbfast power spectrum
-    fn=output_path//'pk0.init'
+    fn=output_path//'pk0_nu.init'
     write(*,*) 'Writing ',fn
     open(11,file=fn,recl=500)
     do k=2,2*nc+1
