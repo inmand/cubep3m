@@ -694,11 +694,13 @@ contains
 
   subroutine deltafield
     implicit none
-    integer :: i,j,k,kg
+    integer :: i,j,k,kg,fstat
     real    :: kr,kx,ky,kz
     real    :: powb,powm
     real    :: d,dmin,dmax,dmint,dmaxt
     real*8  :: dsum,dvar,dsumt,dvart
+    character(len=4) :: rank_string
+    character(len=100) :: check_name
 
     real time1,time2
     call cpu_time(time1)
@@ -904,7 +906,7 @@ contains
        endif
 
        if (cart_coords(1) == 0 .and. cart_coords(2) == 0 .and. &
-           cart_coords(3) == 0) phi8=cube(9,1,1)+cube(1,9,1)+cube(1,1,9)
+           cart_coords(3) == 0) phi8=(9,1,1)+cube(1,9,1)+cube(1,1,9)
 
        if (cart_coords(3) == nodes_dim-1 .and. cart_coords(2) == 0 .and. &
            cart_coords(1) == 0) phi8=phi8+cube(nc_node_dim-7,1,1)
@@ -1127,6 +1129,9 @@ contains
                     xvp(4)=dis(1)*vf
                     xvp(5)=dis(2)*vf
                     xvp(6)=dis(3)*vf
+                    if (nu_flag .AND. nu_dist .AND. nu_write_vel) then
+                        write(*,*) 'NU LIN VEL ',dis(1)*vf,dis(2)*vf,dis(3)*vf
+                    endif
              endif
              write(11) xvp
           enddo

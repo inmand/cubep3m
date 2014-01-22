@@ -670,11 +670,13 @@ contains
 
   subroutine deltafield
     implicit none
-    integer :: i,j,k,kg
+    integer :: i,j,k,kg,fstat
     real    :: kr,kx,ky,kz
     real    :: powb,powm
     real    :: d,dmin,dmax,dmint,dmaxt
     real*8  :: dsum,dvar,dsumt,dvart
+    character(len=4) :: rank_string
+    character(len=100) :: check_name
 
     real time1,time2
     call cpu_time(time1)
