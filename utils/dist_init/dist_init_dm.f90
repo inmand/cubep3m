@@ -757,6 +757,38 @@ contains
       write(*,*)
     endif
 
+#ifdef write_den
+    if (rank == 0) then
+        print *,'Writing density contrast to file'
+    endif
+
+    write(rank_string,'(i4)') rank
+    rank_string = adjustl(rank_string)
+
+    check_name = output_path//'initdeltafield'// &
+        rank_string(1:len_trim(rank_string))//'.bin'
+
+#ifdef BINARY
+    open(unit=21, file=check_name, status='replace', iostat=fstat, form='binary')
+#else
+    open(unit=21, file=check_name, status='replace', iostat=fstat, form='unformatted')
+#endif
+    if (fstat /= 0) then
+        write(*,*) 'error opening density file'
+        write(*,*) 'rank', rank, 'file:', check_name
+        call mpi_abort(mpi_comm_world, ierr, ierr)
+    endif
+
+    do k = 1, nc_node_dim
+        do j = 1, nc_node_dim
+
+            write(21) cube(:, j, k)
+
+        enddo
+    enddo
+
+#endif
+
     call di_fftw(1)
 
     call cpu_time(time2)

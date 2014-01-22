@@ -49,7 +49,8 @@ mpi_xrc_args="-genv I_MPI_FABRICS=shm:ofa -genv I_MPI_OFA_USE_XRC=1 -genv I_MPI_
 # List of programs to run
 #
 
-mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/dist_init/dist_init >& $LOCAL_SCRATCH_PATH/dist_init$RUN_SUFFIX
+mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/dist_init/dist_init_dm >& $LOCAL_SCRATCH_PATH/dist_init_dm$RUN_SUFFIX
+mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/dist_init/dist_init_nu >& $LOCAL_SCRATCH_PATH/dist_init_nu$RUN_SUFFIX
 #mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/mhd_init/mhd_init >& $LOCAL_SCRATCH_PATH/mhd_init$RUN_SUFFIX
 mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../source_threads/cubep3m >& $LOCAL_SCRATCH_PATH/cubep3m$RUN_SUFFIX
 mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../utils/cic_power/ngp_power >& $LOCAL_SCRATCH_PATH/ngp_power$RUN_SUFFIX

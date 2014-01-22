@@ -31,7 +31,7 @@ real(4),parameter    :: r_m_nucdm = Onu/omega_m
 real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omega_m)**0.5/2.0/nc)/(1+z_i)
 
   integer,parameter  :: nt=1
-  logical, parameter :: generate_seeds = .true.
+  logical, parameter :: generate_seeds = .false.
   logical, parameter :: correct_kernel=.true.
 
   !! Cosmo parameters - wmap3+
@@ -780,6 +780,38 @@ contains
       write(*,*) 'Delta var ',real(dvar)
       write(*,*)
     endif
+
+#ifdef write_den
+    if (rank == 0) then
+        print *,'Writing density contrast to file'
+    endif
+
+    write(rank_string,'(i4)') rank
+    rank_string = adjustl(rank_string)
+
+    check_name = output_path//'initdeltafield'// &
+        rank_string(1:len_trim(rank_string))//'_nu.bin'
+
+#ifdef BINARY
+    open(unit=21, file=check_name, status='replace', iostat=fstat, form='binary')
+#else
+    open(unit=21, file=check_name, status='replace', iostat=fstat, form='unformatted')
+#endif
+    if (fstat /= 0) then
+        write(*,*) 'error opening density file'
+        write(*,*) 'rank', rank, 'file:', check_name
+        call mpi_abort(mpi_comm_world, ierr, ierr)
+    endif
+
+    do k = 1, nc_node_dim
+        do j = 1, nc_node_dim
+
+            write(21) cube(:, j, k)
+
+        enddo
+    enddo
+
+#endif
 
     call di_fftw(1)
 

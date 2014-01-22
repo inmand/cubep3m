@@ -8,7 +8,7 @@ FFTWINC= -I/scinet/gpc/lib/fftw/intel-intelmpi-3.2.2-medium/include
 
 LDLIBS= -lsrfftw_mpi -lsrfftw -lsfftw_mpi -lsfftw -lm -ldl
 
-FFLAGS=-shared-intel -fpp -g  -O3 -fpic -xhost -i_dynamic -mcmodel=medium -mt_mpi -DDIAG -DBINARY -DNGP -DPPINT -DOPENMP  -DMPI_TIME -DLRCKCORR -DNGPH -DDISP_MESH 
+FFLAGS=-shared-intel -fpp -g  -O3 -fpic -xhost -i_dynamic -mcmodel=medium -mt_mpi -DDIAG -DBINARY -DNGP -DPPINT -DOPENMP  -DMPI_TIME -DLRCKCORR -DNGPH -DDISP_MESH -DPID_FLAG
 
 #OPTIONAL FLAGS :: -DMHD -DDEBUG_CCIC -DDEBUG_CRHO -DDEBUG_RHOC -DPOINTSRC ##-DBFTEST -DXDRIFT -DPID_FLAG -DPP_EXT -DREAD_SEED -DDEBUG_PP_EXT -DChaplygin
 
