@@ -102,7 +102,7 @@
    enddo
 !$omp end parallel do
 
-    write(*,*) 'DEBUG: numDm = ', numDm, ' ; numNu = ', numNu
+    write(*,*) 'DEBUG: mass_p = ',mass_p, ' ; numDm = ', numDm, ' ; numNu = ', numNu
 
 #ifdef DEBUG_VEL
    do k=1,nc_node_dim
