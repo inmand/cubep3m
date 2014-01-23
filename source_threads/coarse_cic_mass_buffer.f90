@@ -38,9 +38,11 @@
       if( nu_flag .AND. nu_force .AND. (mod(PID(pp),r_n_nucdm) .NE. 0) ) then 
         dx1(1) = mass_p * dx1(1) * r_m_nucdm / (r_n_nucdm-1.0)
         dx2(1) = mass_p * dx2(1) * r_m_nucdm / (r_n_nucdm-1.0)
+        numNu = numNu + 1
       else 
         dx1(1) = mass_p * dx1(1) * (1.0-r_m_nucdm)
         dx2(1) = mass_p * dx2(1) * (1.0-r_m_nucdm)
+        numDm = numDm + 1
       end if
 #endif
 
