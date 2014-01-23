@@ -12,9 +12,10 @@
 
     call system_clock(count=count_i)
 
-#ifdef DEBUG_LOW
+    write(*,*) 'YO DEREK'
+!#ifdef DEBUG_LOW
     write(*,*) 'rank',rank,'np_local',np_local
-#endif
+!#endif
 
     hoc(:,:,:)=0
     np_buf=0

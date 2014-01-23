@@ -237,6 +237,7 @@
           read(20) np_dm
           read(21) np_nu
           np_local = np_nu + np_dm
+          write(*,*) 'np_nu = ',np_nu, ' np_dm = ', np_dm, ' np_local = ', np_local
           if (np_local .NE. np_dm * r_n_nucdm) then
             write(*,*) 'error in particle_initialization.f90 - np_local NEQ np_dm*r_n'
             call mpi_abort(mpi_comm_world,ierr,ierr)
