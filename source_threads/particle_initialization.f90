@@ -342,7 +342,11 @@
        elseif (pp_test) then
           mass_p=10000.0/4.
        else
-          mass_p = real(nf_physical_dim)**3 / real(np_total)
+          if (nu_flag .AND. nu_init) then
+              mass_p = real(nf_physical_dim)**3 / real(np_total/r_n_nucdm)
+          else
+              mass_p = real(nf_physical_dim)**3 / real(np_total)
+          endif
        endif
     endif
 
