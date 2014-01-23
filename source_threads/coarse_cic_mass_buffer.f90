@@ -1,5 +1,5 @@
 !! add mass to coarse mesh density along nodal boundry
-  subroutine coarse_cic_mass_boundry(pp)
+  subroutine coarse_cic_mass_boundry(pp, numNu, numDm)
     use omp_lib
 #ifdef FFTMKL 
     use MKL_DFTI
@@ -12,6 +12,7 @@
 #endif
 
     integer(4) :: pp
+    integer(8) :: numNu, numDm
     integer(4), dimension(3) :: i1,i2
     real(4), dimension(3) :: x,dx1,dx2
 #ifdef DEBUG_CCIC

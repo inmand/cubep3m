@@ -16,6 +16,10 @@
    integer(4) :: i,j,k,pp,ii,jj,kk
    integer(4), dimension(3) :: i1,i2
    real(4), dimension(3) :: x,dx1,dx2
+   integer(8) :: numNu, numDm
+   
+   numNu = 0
+   numDm = 0
 
 
    call system_clock(count=count_i)
@@ -89,14 +93,16 @@
          if (i <= 1 .or. i >= nc_node_dim .or. &
              j <= 1 .or. j >= nc_node_dim .or. &
              k <= 1 .or. k >= nc_node_dim) then
-           call coarse_cic_mass_boundry(pp)
+           call coarse_cic_mass_boundry(pp, numNu, numDm)
          else
-           call coarse_cic_mass(pp)
+           call coarse_cic_mass(pp, numNu, numDm)
          endif
        enddo
      enddo
    enddo
 !$omp end parallel do
+
+    write(*,*) 'DEBUG: numDm = ', numDm, ' ; numNu = ', numNu
 
 #ifdef DEBUG_VEL
    do k=1,nc_node_dim

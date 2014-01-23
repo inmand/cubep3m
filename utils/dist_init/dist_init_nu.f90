@@ -906,7 +906,7 @@ contains
        endif
 
        if (cart_coords(1) == 0 .and. cart_coords(2) == 0 .and. &
-           cart_coords(3) == 0) phi8=(9,1,1)+cube(1,9,1)+cube(1,1,9)
+           cart_coords(3) == 0) phi8=cube(9,1,1)+cube(1,9,1)+cube(1,1,9)
 
        if (cart_coords(3) == nodes_dim-1 .and. cart_coords(2) == 0 .and. &
            cart_coords(1) == 0) phi8=phi8+cube(nc_node_dim-7,1,1)
