@@ -20,7 +20,7 @@ logical,parameter       :: nu_dist = .false. !turns off all of neutrino stuff in
 logical,parameter       :: nu_random = .true.
 logical,parameter       :: nu_write_vel = .true.
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
-integer(4),parameter	:: r_n_nucdm = 2
+integer(4),parameter	:: r_n_nucdm = 2 !!SHOULD BE (r_n_nucdm-1)_(cubepm.par)**(1/3)
 !Omega parameters
 real(4),parameter    :: mass_neutrino = 1.5 !ev
 real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
@@ -74,7 +74,7 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
   !! np is the number of particles
   !! np should be set to nc (1:1), hc (1:2), or qc (1:4)
   
-  integer,parameter :: np=hc*(r_n_nucdm-1)
+  integer,parameter :: np=hc*r_n_nucdm
 
   real, parameter    :: npr=np
 

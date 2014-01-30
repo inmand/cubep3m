@@ -1522,8 +1522,8 @@ end subroutine pass_particles
             if (mod(PID(i),r_n_nucdm) .NE. 0) then
                 !dz1=r_m_nucdm*mp*dz1/(r_n_nucdm-1.0)
                 !dz2=r_m_nucdm*mp*dz2/(r_n_nucdm-1.0)
-                dz1 = mp*dz1
-                dz2 = mp*dz2
+                dz1 = mp*dz1/(r_n_nucdm-1.0)
+                dz2 = mp*dz2/(r_n_nucdm-1.0)
             else
                 dz1=0.0
                 dz2=0.0
