@@ -38,7 +38,7 @@
         dx1(1) = mass_p * dx1(1) * (1.0-r_m_nucdm)
         dx2(1) = mass_p * dx2(1) * (1.0-r_m_nucdm)
         numDm = numDm + 1
-      end if
+      endif
 #endif
 
 #ifdef DEBUG_CCIC

@@ -16,7 +16,7 @@ program dist_init
 !Do neutrinos?
 logical,parameter       :: nu_flag = .true. !turns off all neutrino stuff 
 !debug params
-logical,parameter       :: nu_dist = .false. !turns off all of neutrino stuff in dist_init
+logical,parameter       :: nu_dist = .true. !turns off all of neutrino stuff in dist_init
 logical,parameter       :: nu_random = .true.
 logical,parameter       :: nu_write_vel = .true.
 !Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
@@ -28,7 +28,7 @@ real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
 real(4),parameter    :: r_m_nucdm = Onu/omega_m
 !Omega_dm/Omega_m = (Omega_dm)/(Omega_dm+Omega_nu) = 1-Omega_Nu/(Omega_dm+Omega_nu)
 
-real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omega_m)**0.5/2.0/nc)/(1+z_i)
+real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omega_m)**0.5/2.0/nc)
 
   integer,parameter  :: nt=1
   logical, parameter :: generate_seeds = .false.
@@ -57,7 +57,7 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
 !  character(*), parameter :: fntf='dbi_tfn_nu.dat'
 
   integer, parameter      :: nk=562
-  character(*),parameter :: fntf='camb.dat'
+  character(*),parameter :: fntf='camb_nu.dat'
 
   !! IOform should be 'binary' or 'unformatted'
 #ifdef BINARY
@@ -474,6 +474,7 @@ contains
     integer :: i,k
     real    :: kr,kmax,dummy
     real*8  :: v8
+    real    :: tfn1,tfn2,tfn3,tfn4,tfn5,tfn6,tfn7
 
     real time1,time2
     call cpu_time(time1)
@@ -491,7 +492,12 @@ contains
       open(11,file=fntf)
 !      read(11,*) tf
       do k=1,nk
-         read(11,*) tf(1,k),tf(2,k),tf(3,k),tf(4,k),dummy,dummy,dummy
+         read(11,*) tfn1, tfn2, tfn2, tfn3, tfn4, tfn5, tfn6,tfn7
+         tf(1,k) = tfn1
+         tf(2,k) = tfn6
+         tf(3,k) = tfn3
+         tfn(4,k) = tfn4
+         !tf(1,k),tf(2,k),tf(3,k),tf(4,k),dummy,dummy,dummy
       end do
       close(11)
 
@@ -525,7 +531,7 @@ contains
 
       !! Normalize to \sigma_8
       !! Include growth factor
-      tf(2:3,:)=tf(2:3,:)*(s8**2/v8)*Dgrow(scalefactor)**2
+      !tf(2:3,:)=tf(2:3,:)*(s8**2/v8)*Dgrow(scalefactor)**2
     endif
 
     call mpi_barrier(mpi_comm_world,ierr)
