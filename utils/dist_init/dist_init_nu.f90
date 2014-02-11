@@ -57,7 +57,7 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
 !  character(*), parameter :: fntf='dbi_tfn_nu.dat'
 
   integer, parameter      :: nk=562
-  character(*),parameter :: fntf='camb_nu.dat'
+  character(*),parameter :: fntf='camb_nu_z200.dat'
 
   !! IOform should be 'binary' or 'unformatted'
 #ifdef BINARY
@@ -101,8 +101,8 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
   real, parameter :: pi=3.141592654
 
   !! Power spectrum arrays
-  real, dimension(5,nk) :: tf   !cmbfast
-!  real, dimension(7,nk) :: tf    !CAMB
+!  real, dimension(5,nk) :: tf   !cmbfast
+  real, dimension(7,nk) :: tf    !CAMB
   real, dimension(2,nc) :: pkm,pkn
 
   !! Fourier transform arrays
@@ -474,7 +474,6 @@ contains
     integer :: i,k
     real    :: kr,kmax,dummy
     real*8  :: v8
-    real    :: tfn1,tfn2,tfn3,tfn4,tfn5,tfn6,tfn7
 
     real time1,time2
     call cpu_time(time1)
@@ -492,12 +491,7 @@ contains
       open(11,file=fntf)
 !      read(11,*) tf
       do k=1,nk
-         read(11,*) tfn1, tfn2, tfn2, tfn3, tfn4, tfn5, tfn6,tfn7
-         tf(1,k) = tfn1
-         tf(2,k) = tfn6
-         tf(3,k) = tfn3
-         tfn(4,k) = tfn4
-         !tf(1,k),tf(2,k),tf(3,k),tf(4,k),dummy,dummy,dummy
+         read(11,*) tf(1,k),tf(2,k),tf(3,k),tf(4,k),tf(5,k),tf(6,k),tf(7,k)
       end do
       close(11)
 
@@ -531,7 +525,7 @@ contains
 
       !! Normalize to \sigma_8
       !! Include growth factor
-      !tf(2:3,:)=tf(2:3,:)*(s8**2/v8)*Dgrow(scalefactor)**2
+      tf(1,:)=tf(6,:)*(s8**2/v8)*Dgrow(scalefactor)**2
     endif
 
     call mpi_barrier(mpi_comm_world,ierr)
