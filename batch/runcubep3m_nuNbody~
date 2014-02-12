@@ -1,0 +1,65 @@
+#!/bin/bash
+# MOAB/Torque submission script for SciNet GPC
+#
+#PBS -l nodes=NUM_NODE_REPLACE:ppn=8,walltime=WALLTIME_REPLACE
+#PBS -N RUN_DIRECTORY_REPLACE 
+
+cd $PBS_O_WORKDIR
+
+#
+# Define some variables
+#
+
+export NUM_NODE_COMPILED='NUM_NODE_REPLACE'
+export RUN_SUFFIX='Log' #'SUFFIX_REPLACE'
+export LOCAL_SCRATCH_PATH='/scratch/p/pen/dinman/cubep3m/RUN_DIRECTORY_REPLACE'
+
+export I_MPI_PIN_DOMAIN='omp'
+export OMP_NUM_THREADS='8'
+
+#
+# Load proper modules
+#
+
+module purge
+module load intel/12.1.3
+module load intelmpi/4.0.3.008
+module load fftw/2.1.5-intel-intelmpi4
+
+#
+# Make scratch directory
+#
+
+[ -d $LOCAL_SCRATCH_PATH ] || mkdir $LOCAL_SCRATCH_PATH
+
+#
+# Log nodes used
+#
+
+cat $PBS_NODEFILE > $LOCAL_SCRATCH_PATH/nodes$RUN_SUFFIX
+
+#
+# IntelMPI flags -- see https://support.scinet.utoronto.ca/wiki/index.php/GPC_MPI_Versions
+#
+
+mpi_ipoib_args="-env I_MPI_TCP_NETMASK=ib -env I_MPI_FABRICS shm:tcp"
+mpi_xrc_args="-genv I_MPI_FABRICS=shm:ofa -genv I_MPI_OFA_USE_XRC=1 -genv I_MPI_OFA_DYNAMIC_QPS=1 -genv I_MPI_OFA_NUM_RDMA_CONNECTIONS=-1"
+
+#
+# List of programs to run
+#
+
+mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/dist_init/dist_init >& $LOCAL_SCRATCH_PATH/dist_init$RUN_SUFFIX
+#mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_ipoib_args ../utils/mhd_init/mhd_init >& $LOCAL_SCRATCH_PATH/mhd_init$RUN_SUFFIX
+mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../source_threads/cubep3m >& $LOCAL_SCRATCH_PATH/cubep3m$RUN_SUFFIX
+mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../utils/cic_power/ngp_power >& $LOCAL_SCRATCH_PATH/ngp_power$RUN_SUFFIX
+mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_xrc_args   ../utils/cic_power/ngp_power_nu >& $LOCAL_SCRATCH_PATH/ngp_power_nu$RUN_SUFFIX
+#mpirun -ppn 1 -np $NUM_NODE_COMPILED $mpi_args ../utils/cic_power/ngp_power_mhd >& $LOCAL_SCRATCH_PATH/ngp_power_mhd$RUN_SUFFIX
+
+#
+# Copy relevant data to the run directory
+#
+
+cp -r ../input $LOCAL_SCRATCH_PATH
+cp parameters-used $LOCAL_SCRATCH_PATH/input
+

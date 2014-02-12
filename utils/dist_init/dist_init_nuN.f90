@@ -10,28 +10,11 @@
 program dist_init 
   implicit none
   include 'mpif.h'
-  include '../../parameters'
-  
-!! Neutrino parameters
-!Do neutrinos?
-logical,parameter       :: nu_flag = .true. !turns off all neutrino stuff 
-!debug params
-logical,parameter       :: nu_dist = .true. !turns off all of neutrino stuff in dist_init
-logical,parameter       :: nu_random = .true.
-logical,parameter       :: nu_write_vel = .true.
-!Ratio of neutrino particles to cdm -1 (e.g. set to 2 to have equal nu and cdm)
-integer(4),parameter	:: r_n_nucdm = 2 !!SHOULD BE (r_n_nucdm-1)_(cubepm.par)**(1/3)
-!Omega parameters
-real(4),parameter    :: mass_neutrino = 1.5 !ev
-real(4),parameter    :: Onu = mass_neutrino/93.15/0.68/0.68
-!Omega_Nu/Omega_m = Omega_Nu/(Omega_dm+Omega_nu)
-real(4),parameter    :: r_m_nucdm = Onu/omega_m
-!Omega_dm/Omega_m = (Omega_dm)/(Omega_dm+Omega_nu) = 1-Omega_Nu/(Omega_dm+Omega_nu)
-
-real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omega_m)**0.5/2.0/nc)
+  include '../../parameters' 
+  include '../../source_threads/cubepm.par'
 
   integer,parameter  :: nt=1
-  logical, parameter :: generate_seeds = .false.
+  logical, parameter :: generate_seeds = .true.
   logical, parameter :: correct_kernel=.true.
 
   !! Cosmo parameters - wmap3+
@@ -53,11 +36,8 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
 !  integer, parameter      :: nk=437
 !  character(*), parameter :: fntf='CAMB_BAO_Tf_CAMB_BAO.dat'
 
-!  integer, parameter      :: nk=922
-!  character(*), parameter :: fntf='dbi_tfn_nu.dat'
-
   integer, parameter      :: nk=562
-  character(*),parameter :: fntf='camb_nu_z200.dat'
+  character(*), parameter :: fntf='camb.dat'
 
   !! IOform should be 'binary' or 'unformatted'
 #ifdef BINARY
@@ -73,9 +53,7 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
 
   !! np is the number of particles
   !! np should be set to nc (1:1), hc (1:2), or qc (1:4)
-  
-  integer,parameter :: np=hc*r_n_nucdm
-
+  integer, parameter :: np=hc*(r_n_nucdm-1)
   real, parameter    :: npr=np
 
   !! internal parallelization parameters
@@ -101,8 +79,8 @@ real(4),parameter    :: Vphys2sim = (180.8892437/mass_neutrino)/(box*300.0*(omeg
   real, parameter :: pi=3.141592654
 
   !! Power spectrum arrays
-!  real, dimension(5,nk) :: tf   !cmbfast
-  real, dimension(7,nk) :: tf    !CAMB
+  real, dimension(5,nk) :: tf   !cmbfast
+!  real, dimension(7,nk) :: tf    !CAMB
   real, dimension(2,nc) :: pkm,pkn
 
   !! Fourier transform arrays
@@ -413,7 +391,6 @@ contains
     write(*,*) 'box      ',box
     write(*,*) 'redshift ',redshift
     write(*,*)
-    write(*,*) 'Vphys2sim ',Vphys2sim
 
 #ifdef MY_TRANSFER
     write(*,*) 'power index',power_index
@@ -442,7 +419,7 @@ contains
     !! 3rd is standard deviation
     !! 6th is noise p(k)
     !! 7th is noise standard deviation
-    fn=output_path//'pk_nu.init'
+    fn=output_path//'pk.init'
     write(*,*) 'Writing ',fn
     open(11,file=fn,recl=500)
     do k=2,hc+1
@@ -452,7 +429,7 @@ contains
     close(11)
 
     !! Output cmbfast power spectrum
-    fn=output_path//'pk0_nu.init'
+    fn=output_path//'pk0.init'
     write(*,*) 'Writing ',fn
     open(11,file=fn,recl=500)
     do k=2,2*nc+1
@@ -491,7 +468,7 @@ contains
       open(11,file=fntf)
 !      read(11,*) tf
       do k=1,nk
-         read(11,*) tf(1,k),tf(2,k),tf(3,k),tf(4,k),tf(5,k),tf(6,k),tf(7,k)
+         read(11,*) tf(1,k),tf(2,k),tf(3,k),tf(4,k),dummy,dummy,dummy
       end do
       close(11)
 
@@ -500,7 +477,6 @@ contains
          kr     =tf(1,k)
          tf(2,k)=kr**(3+ns)*tf(2,k)**2/(2*pi**2)
          tf(3,k)=kr**(3+ns)*tf(3,k)**2/(2*pi**2)
-         tf(6,k)=kr**(3+ns)*tf(6,k)**2/(2*pi**2)
 
 #ifdef MY_TRANSFER
          tf(2:3,k) = kr**(3-power_index)/(2*pi**2) 
@@ -526,7 +502,7 @@ contains
 
       !! Normalize to \sigma_8
       !! Include growth factor
-      tf(2,:)=tf(6,:)*(s8**2/v8)*Dgrow(scalefactor)**2
+      tf(2:3,:)=tf(2:3,:)*(s8**2/v8)*Dgrow(scalefactor)**2
     endif
 
     call mpi_barrier(mpi_comm_world,ierr)
@@ -695,13 +671,11 @@ contains
 
   subroutine deltafield
     implicit none
-    integer :: i,j,k,kg,fstat
+    integer :: i,j,k,kg
     real    :: kr,kx,ky,kz
     real    :: powb,powm
     real    :: d,dmin,dmax,dmint,dmaxt
     real*8  :: dsum,dvar,dsumt,dvart
-    character(len=4) :: rank_string
-    character(len=100) :: check_name
 
     real time1,time2
     call cpu_time(time1)
@@ -783,38 +757,6 @@ contains
       write(*,*) 'Delta var ',real(dvar)
       write(*,*)
     endif
-
-#ifdef write_den
-    if (rank == 0) then
-        print *,'Writing density contrast to file'
-    endif
-
-    write(rank_string,'(i4)') rank
-    rank_string = adjustl(rank_string)
-
-    check_name = output_path//'initdeltafield'// &
-        rank_string(1:len_trim(rank_string))//'_nu.bin'
-
-#ifdef BINARY
-    open(unit=21, file=check_name, status='replace', iostat=fstat, form='binary')
-#else
-    open(unit=21, file=check_name, status='replace', iostat=fstat, form='unformatted')
-#endif
-    if (fstat /= 0) then
-        write(*,*) 'error opening density file'
-        write(*,*) 'rank', rank, 'file:', check_name
-        call mpi_abort(mpi_comm_world, ierr, ierr)
-    endif
-
-    do k = 1, nc_node_dim
-        do j = 1, nc_node_dim
-
-            write(21) cube(:, j, k)
-
-        enddo
-    enddo
-
-#endif
 
     call di_fftw(1)
 
@@ -1048,7 +990,6 @@ contains
     integer :: i1,j1,k1,lb,ub
     real    :: d,dmin,dmax,sum_dm,sum_dm_local,dmint,dmaxt,vf,xvp(6)
     real*8  :: dsum,dvar,dsumt,dvart
-    real(4)    :: rnum1,rnum2,rnum3,rnum4
     real, dimension(3) :: dis,x
     real*8, dimension(3) :: xav
     character*180 :: fn
@@ -1061,8 +1002,7 @@ contains
 
     write(rank_s,'(i6)') rank
     rank_s=adjustl(rank_s)
-    fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'_nu.ic'
-
+    fn=scratch_path//'xv'//rank_s(1:len_trim(rank_s))//'.ic'
     open(11,file=fn,form=IOform,iostat=ioerr)
     if (ioerr /= 0) then
       print *,'error opening:',fn
@@ -1089,51 +1029,9 @@ contains
              xvp(1)=dis(1)+(i1-0.5)
              xvp(2)=dis(2)+(j1-0.5)
              xvp(3)=dis(3)+(k1-0.5)
-             if (nu_flag .AND. nu_dist .AND. nu_random) then 
-                    !uniform random #
-                    call random_number(rnum1)
-                    call random_number(rnum2)
-                    
-                    !convert to gaussian 
-                    rnum3=2*pi*rnum1
-                    rnum4=sqrt(-2*log(rnum2))
-                
-                    rnum1=rnum4*cos(rnum3)
-                    rnum2=rnum4*sin(rnum3)
-                
-                    !Convert to real gaussian using dispersion
-                    !scale factor cancels out in velocity dispersion and conversion factor
-                    !sigma_nu = 181km/s / (mnu * a)
-                    rnum1 = rnum1*Vphys2sim
-                    rnum2 = rnum2*Vphys2sim
-                
-                    xvp(4)=dis(1)*vf + rnum1 
-                    xvp(5)=dis(2)*vf + rnum2
-                
-                    call random_number(rnum3)
-                    call random_number(rnum4)
-                    
-                    rnum3=2*pi*rnum3
-                    rnum4=sqrt(-2*log(rnum4))
-                
-                    rnum3=rnum4*cos(rnum3)
-                    rnum3 = rnum3*Vphys2sim
-
-                    xvp(6)=dis(3)*vf + rnum3
-                    
-                    if (nu_write_vel) then
-                        write(*,*) 'NU RAN VEL ',rnum1,rnum2,rnum3
-                        write(*,*) 'NU LIN VEL ',dis(1)*vf,dis(2)*vf,dis(3)*vf
-                    endif
-                    
-            else
-                    xvp(4)=dis(1)*vf
-                    xvp(5)=dis(2)*vf
-                    xvp(6)=dis(3)*vf
-                    if (nu_flag .AND. nu_dist .AND. nu_write_vel) then
-                        write(*,*) 'NU LIN VEL ',dis(1)*vf,dis(2)*vf,dis(3)*vf
-                    endif
-             endif
+             xvp(4)=dis(1)*vf
+             xvp(5)=dis(2)*vf
+             xvp(6)=dis(3)*vf
              write(11) xvp
           enddo
        enddo
